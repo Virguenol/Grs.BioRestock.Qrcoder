@@ -1,0 +1,231 @@
+﻿@using Grs.BioRestock.Shared.Constants.Application;
+@using Grs.BioRestock.Transfer.DataModels.Demande;
+@using Grs.BioRestock.Transfer.DataModels.Document;
+@using Microsoft.AspNetCore.SignalR.Client;
+@using System.IO;
+
+<EditForm Model="@ModelDemande" OnValidSubmit="SubmitForm">
+    <FluentValidationValidator @ref="_fluentValidationValidator" />
+    <MudDialog>
+        <TitleContent>
+            @{
+                if (ModelListe.Id == 0)
+                {
+                    <MudText Typo="Typo.h6">
+                        <MudIcon Icon="@Icons.Material.Filled.Add" Class="mr-3 mb-n1" />
+                        Add Document
+                    </MudText>
+                }
+                else
+                {
+                    <MudText Typo="Typo.h6">
+                        <MudIcon Icon="@Icons.Material.Filled.Update" Class="mr-3 mb-n1" />
+                        Update Document
+                    </MudText>
+                }
+            }
+        </TitleContent>
+        <DialogContent>
+            <MudGrid>
+                <MudItem xs="12" md="6">
+                    <MudTextField Disabled For="@(() => ModelListe.Id)" @bind-Value="ModelListe.Id" Label="Id" />
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudTextField For="@(() => ModelDemande.NomClient)" @bind-Value="ModelDemande.NomClient" Label="Nom Client" />
+                </MudItem>
+                
+                <MudItem xs="12" md="6">
+                    <MudTextField For="@(() => ModelDemande.Designation)" @bind-Value="ModelDemande.Designation" Label="Designation" />
+                </MudItem>
+
+                <MudItem xs="12" md="6">
+                    <MudTextField For="@(() => ModelListe.Title)" @bind-Value="ModelListe.Title" Label="Titre Document" />
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudItem>
+
+                        @if (_file != null)
+                        {
+                            <MudAlert>@_file.Name</MudAlert>
+                            <InputFile id="fileInput" hidden OnChange="UploadFiles" />
+                        }
+                        @if (ModelListe.Id != 0 && !string.IsNullOrEmpty(ModelListe.FileUrl))
+                        {
+                            @*                            <MudAlert>@(ModelDemande.FileUrl)</MudAlert>
+                        *@      }
+                        <InputFile id="fileInput" hidden OnChange="UploadFiles" Multiple />
+                        <div>
+                            @if (ModelListe.Id == 0)
+                            {
+                                <MudButton HtmlTag="label"
+                                           Variant="Variant.Text"
+                                           Color="Color.Primary"
+                                           Size="Size.Small"
+                                           StartIcon="@Icons.Filled.CloudUpload"
+                                           for="fileInput">
+                                    Upload
+                                </MudButton>
+                            }
+                            else if (!string.IsNullOrEmpty(ModelListe.FileUrl))
+                            {
+                                <MudButton HtmlTag="label"
+                                           Variant="Variant.Text"
+                                           Color="Color.Primary"
+                                           Size="Size.Small"
+                                           StartIcon="@Icons.Filled.CloudUpload"
+                                           for="fileInput">
+                                    Upload
+                                </MudButton>
+                            }
+                        </div>
+                    </MudItem>
+                </MudItem>
+            </MudGrid>
+        </DialogContent>
+        <DialogActions>
+            <MudButton Variant="Variant.Filled" OnClick="Cancel">Cancel</MudButton>
+            @if (ModelListe.Id != 0)
+            {
+                <MudButton Variant="Variant.Filled" ButtonType="ButtonType.Submit" Color="Color.Success">Update</MudButton>
+            }
+            else
+            {
+                <MudButton Variant="Variant.Filled" ButtonType="ButtonType.Submit" Color="Color.Success">Save</MudButton>
+            }
+        </DialogActions>
+    </MudDialog>
+</EditForm>
+
+@code {
+    private bool _loaded;
+    private string _searchString = "";
+    [CascadingParameter] private MudDialogInstance MudDialog { get; set; }
+    [CascadingParameter] private HubConnection HubConnection { get; set; }
+
+    [Inject] private IDocumentClient _documentClient { get; set; }
+    [Inject] private IDemandeClient _demandeClient { get; set; }
+
+    private const long MAX_FILE_SIZE = 1024 * 1024 * 10;
+    private List<string> errors = new();
+    private FluentValidationValidator _fluentValidationValidator;
+
+
+    private List<DemandeSignatureDto> allDement = new();
+    //private List<DocumentDto> allDocument = new();
+
+    [Parameter]
+    public DemandeSignatureDto demande { get; set; }
+    protected DocumentDto document { get; set; }
+
+    public DemandeSignatureDto ModelDemande { get; set; } = new();
+    protected DocumentDto ModelListe { get; set; } = new();
+    [Parameter]
+    public int Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        HubConnection = HubConnection.TryInitialize(_navigationManager);
+        if (HubConnection.State == HubConnectionState.Disconnected)
+        {
+            await HubConnection.StartAsync();
+        }
+        await GetAllDemande();
+    }
+
+    private IBrowserFile _file;
+
+    private async Task SubmitForm()
+    {
+        try
+        {
+            await CaptureFile();
+            var response1 = await _demandeClient.AddEditAsync(ModelDemande);
+            await GetAllDemande();
+
+            ModelListe.IdDemandeSignature = allDement.OrderByDescending(x => x.Id).FirstOrDefault().Id;
+            var response = await _documentClient.AddEditAsync(ModelListe);
+            if (response.Succeeded && response1.Succeeded)
+            {
+                _snackBar.Add(response.Messages[0], Severity.Success);
+                await HubConnection.SendAsync(ApplicationConstants.SignalR.SendUpdateDashboard);
+                MudDialog.Close();
+            }
+            else
+            {
+                foreach (var message in response.Messages)
+                {
+                    _snackBar.Add(message, Severity.Error);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            errors.Add($"Error: {ex.Message}");
+        }
+        await HubConnection.SendAsync(ApplicationConstants.SignalR.SendUpdateDashboard);
+    }
+
+    private async Task UploadFiles(InputFileChangeEventArgs e)
+    {
+        _file = e.File;
+        if (_file != null)
+        {
+            var buffer = new byte[_file.Size];
+            var extension = Path.GetExtension(_file.Name);
+            var format = "application/octet-stream";
+            foreach (var file in extension)
+            {
+                await _file.OpenReadStream(_file.Size).ReadAsync(buffer);
+                ModelListe.FileUrl = $"data:{format};base64,{Convert.ToBase64String(buffer)}";
+                ModelListe.UploadRequest = new UploadRequest { Data = buffer, UploadType = UploadType.Document, Extension = extension };
+            }
+        }
+    }
+
+
+    private async Task CaptureFile()
+    {
+        string addContent = Localizer["Voulez-vous Ajouter ?"];
+        var parameters = new DialogParameters
+        {
+          { nameof(Shared.Dialogs.ConfirmationDialog.ContentText), string.Format(addContent) }
+        };
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true, DisableBackdropClick = true };
+        var dialog = _dialogService.Show<Shared.Dialogs.ConfirmationDialog>(Localizer["Aoujer"], parameters, options);
+        var result = await dialog.Result;
+        if (!result.Cancelled)
+        {
+            try
+            {
+                ModelListe.FileName = Path.ChangeExtension(Path.GetRandomFileName(), Path.GetExtension(_file.Name));
+                ModelListe.FileData = await _file.GetAllBytes();
+            }
+            catch (Exception ex)
+            {
+                errors.Add($"File: {_file.Name} Error: {ex.Message}");
+                throw;
+            }
+        }
+    }
+
+    private async Task GetAllDemande()
+    {
+        try
+        {
+            var response = await _demandeClient.GetAllAsync();
+            if (response.Succeeded)
+            {
+                allDement = response.Data.ToList();
+                _loaded = true;
+            }
+        }
+        catch (Exception)
+        {
+            throw;
+        }
+    }
+    public void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+}

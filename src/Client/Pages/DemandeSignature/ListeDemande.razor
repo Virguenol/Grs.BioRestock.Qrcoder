@@ -1,0 +1,140 @@
+﻿@page "/Demande/liste_demande"
+@using Grs.BioRestock.Transfer.DataModels.Demande;
+@using Grs.BioRestock.Transfer.DataModels.Document;
+
+<MudTable Items="@allDemandeSignature" Filter="new Func<DemandeSignatureDto, bool>(Search)" @bind-role="demandeSignature" Hover="true" Breakpoint="Breakpoint.Sm" Loading="@_loaded" LoadingProgressColor="Color.Info">
+    <ToolBarContent>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => InvokeModal(null))">Ajouter</MudButton>
+        <MudSpacer />
+        <MudTextField @bind-Value="_searchString" Immediate="true" Placeholder="@Localizer["Rechercher des demande..."]" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0 mb-3" Style="width:100%; align-items:center;"></MudTextField>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh><MudTableSortLabel SortBy="new Func<DemandeSignatureDto, object>(x => x.Id)">Id</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel SortBy="new Func<DemandeSignatureDto, object>(x => x.Designation)">Designation</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel SortBy="new Func<DemandeSignatureDto, object>(x => x.NomClient)">Nom client</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel SortBy="new Func<DemandeSignatureDto, object>(x => x.CreatedOn)">Date De création</MudTableSortLabel></MudTh>
+        <MudTh Style="text-align: center">
+            Action
+        </MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Id">@context.Id</MudTd>
+        <MudTd DataLabel="Designation">@context.Designation</MudTd>
+        <MudTd DataLabel="Nom Client">@context.NomClient</MudTd>
+        <MudTd DataLabel="Date Creation">@context.CreatedOn.ToString("dd/MM/yyyy")</MudTd>
+
+
+        <MudTd Style="text-align: right">
+            <MudMenu Label="Actions" Variant="Variant.Filled" DisableElevation="true" EndIcon="@Icons.Filled.KeyboardArrowDown" IconColor="Color.Secondary" Direction="Direction.Left" OffsetX="true">
+                <MudMenuItem>Modifier</MudMenuItem>
+                <MudMenuItem>Supprimer</MudMenuItem>
+                <MudMenuItem>Annuler</MudMenuItem>
+            </MudMenu>
+            <MudButton Variant="Variant.Filled" OnClick="@(() => ListeModal(@context.Id))">Liste</MudButton>
+        </MudTd>
+    </RowTemplate>
+    <PagerContent>
+        <MudTablePager />
+    </PagerContent>
+</MudTable>
+
+@code {
+    private bool _loaded;
+    private string _searchString = "";
+
+    [Inject] private IDocumentClient _documentClient { get; set; }
+    [Inject] private IDemandeClient _demandeClient { get; set; }
+
+    protected DemandeSignatureDto demandeSignature { get; set; }
+
+    protected List<DemandeSignatureDto> allDemandeSignature { get; set; } = new();
+    protected List<DocumentDto> allDocument { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetAllDemande();
+    }
+
+    private async Task GetAllDemande()
+    {
+        _loaded = true;
+
+        try
+        {
+            var response = await _demandeClient.GetAllAsync();
+            if (response.Succeeded)
+            {
+                allDemandeSignature = response.Data.ToList();
+            }
+        }
+        catch (Exception)
+        {
+            throw;
+        }
+        _loaded = false;
+
+    }
+
+    private async Task ListeModal(int id)
+    {
+
+        var parameters = new DialogParameters();
+
+        parameters.Add(nameof(ListeDocument.IdDocument), id);
+        var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true };
+        var dialog = _dialogService.Show<ListeDocument>(id == 0 ? Localizer["Create"] : Localizer["Edit"], parameters, options);
+        var result = await dialog.Result;
+        if (!result.Cancelled)
+        {
+            OnSearch("");
+            //await GetAllDemande();
+        }
+    }
+
+    private async Task InvokeModal(string id)
+    {
+        var parameters = new DialogParameters();
+        if (id != null)
+        {
+            demandeSignature = allDemandeSignature.FirstOrDefault(d => d.Id == Convert.ToInt32(id));
+            if (demandeSignature != null)
+            {
+                parameters.Add(nameof(AddEditModal.ModelDemande), new DemandeSignatureDto
+                    {
+                        Id = demandeSignature.Id,
+                        Designation = demandeSignature.Designation,
+                        NomClient = demandeSignature.NomClient,
+                    });
+            }
+        }
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true, DisableBackdropClick = true };
+        var dialog = _dialogService.Show<AddEditModal>(id == null ? Localizer["Create"] : Localizer["Edit"], parameters, options);
+        var result = await dialog.Result;
+        if (!result.Cancelled)
+        {
+            OnSearch("");
+            await GetAllDemande();
+        }
+    }
+
+    private bool Search(DemandeSignatureDto demande)
+    {
+        if (string.IsNullOrWhiteSpace(_searchString)) return true;
+        if (demande.Designation?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true)
+        {
+            return true;
+        }
+        if (demande.NomClient?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true)
+        {
+            return true;
+        }
+        return false;
+    }
+
+    private void OnSearch(string text)
+    {
+        _searchString = text;
+        //_table.ReloadServerData();
+    }
+
+}
