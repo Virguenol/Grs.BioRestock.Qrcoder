@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Grs.BioRestock.Server.Controllers.DemandeService
 {
-    
+
     public class DocumentController : BaseApiController<DocumentController>
     {
         private readonly IDocumentService _documentService;
@@ -47,6 +47,18 @@ namespace Grs.BioRestock.Server.Controllers.DemandeService
         public async Task<Result<string>> SignerDocument(int id)
         {
             return await _documentService.SignerDemande(id);
+        }
+
+        [HttpGet(nameof(VerifierSingature) + "/{valeurCode}")]
+        public async Task<Result<DocumentDto>> VerifierSingature(string valeurCode)
+        {
+            return await _documentService.VerifierSingature(valeurCode);
+        }
+
+        [HttpPost(nameof(AnnuleDemande) + "/{id}")]
+        public async Task<Result<string>> AnnuleDemande(int id)
+        {
+            return await _documentService.AnnuleDemande(id);
         }
     }
 }

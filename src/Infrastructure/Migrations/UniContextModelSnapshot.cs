@@ -76,6 +76,9 @@ namespace Grs.BioRestock.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedOn")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateTime>("DateAnnulation")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime>("DateEtablissement")
                         .HasColumnType("datetime2");
 

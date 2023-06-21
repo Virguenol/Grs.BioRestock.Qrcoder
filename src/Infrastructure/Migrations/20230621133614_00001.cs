@@ -123,6 +123,7 @@ namespace Grs.BioRestock.Infrastructure.Migrations
                     CodeSignature = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     DateSignature = table.Column<DateTime>(type: "datetime2", nullable: false),
                     DateEtablissement = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    DateAnnulation = table.Column<DateTime>(type: "datetime2", nullable: false),
                     IdDemandeSignature = table.Column<int>(type: "int", nullable: false),
                     demandeStatut = table.Column<int>(type: "int", nullable: false),
                     DemandeSignatureId = table.Column<int>(type: "int", nullable: true),

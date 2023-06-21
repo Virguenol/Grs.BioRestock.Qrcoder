@@ -60,6 +60,8 @@ else
                      <MudMenuItem OnClick="(() => InvokeModal(Convert.ToString(context.Id)))">@Localizer["Modifier"]</MudMenuItem>
                        
                      <MudMenuItem OnClick="@(() => SupprimerDemande(@context.Id))">Supprimer</MudMenuItem>
+
+                     <MudMenuItem OnClick="@(() => SignerDocument(@context.Id))">Signature</MudMenuItem>
                         
                         
                         
@@ -146,7 +148,7 @@ else
             if (response == null)
             {
                 _snackBar.Add(response.Messages[0], Severity.Success);
-                //await GetDemande();
+                await GetAllDemande(IdDocument);
             }
             else
             {
@@ -231,5 +233,33 @@ else
     {
         _searchString = text;
         //_table.ReloadServerData();
+    }
+
+    public async Task SignerDocument(int demandeSignatureId)
+    {
+        string updateContent = Localizer["Voulez-vous Signer?"];
+        var parameters = new DialogParameters
+        {
+          { nameof(Shared.Dialogs.ConfirmationDialog.ContentText), string.Format(updateContent) }
+        };
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true, DisableBackdropClick = true };
+        var dialog = _dialogService.Show<Shared.Dialogs.ConfirmationDialog>(Localizer["Aoujer"], parameters, options);
+        var result = await dialog.Result;
+        if (!result.Cancelled)
+        {
+            var response = await _documentClient.SignerDocumentAsync(demandeSignatureId);
+            if (response == null)
+            {
+                _snackBar.Add(response.Messages[0], Severity.Success);
+                await GetAllDemande(IdDocument);
+            }
+            else
+            {
+                foreach (var message in response.Messages)
+                {
+                    _snackBar.Add(message, Severity.Error);
+                }
+            }
+        }
     }
 }

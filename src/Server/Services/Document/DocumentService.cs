@@ -2,28 +2,42 @@
 using Grs.BioRestock.Domain.Entities;
 using Grs.BioRestock.Infrastructure.Contexts;
 using Grs.BioRestock.Server.Services.Demande;
+using Grs.BioRestock.Server.Services.QrCode;
+using Grs.BioRestock.Shared.Enums.Demande;
 using Grs.BioRestock.Shared.Wrapper;
+using Grs.BioRestock.Transfer.DataModels;
+using Grs.BioRestock.Transfer.DataModels.Demande;
 using Grs.BioRestock.Transfer.DataModels.Document;
+using iTextSharp.text.pdf.parser;
+using iTextSharp.text.pdf;
 using Mapster;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using QRCoder;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Threading.Tasks;
+using ZXing;
+using ZXing.PDF417;
+using ZXing.QrCode.Internal;
 
 namespace Grs.BioRestock.Server.Services.Document
 {
     public interface IDocumentService
     {
         Task<Result<List<DocumentDto>>> GetListeDocument(int idDemande);
-        Task<Result<DocumentDto>> GetByIdDocument(int id);
         Task<Result<string>> AddDocument(DocumentDto demandeSignature);
+        Task<Result<DocumentDto>> VerifierSingature(string valeurCode);
+        Task<Result<DocumentDto>> GetByIdDocument(int id);
         Task<Result<string>> DeleteDocument(int id);
         Task<Result<string>> SignerDemande(int id);
+        Task<Result<string>> AnnuleDemande(int id);
     }
     public class DocumentService : IDocumentService
     {
@@ -31,12 +45,15 @@ namespace Grs.BioRestock.Server.Services.Document
         private readonly IWebHostEnvironment _env;
         private readonly IConfiguration _configuration;
         private readonly IUploadService _uploadService;
+        public IQrCodeGenerateur _qrCodeGenerateur;
+
         public DocumentService(UniContext context, IUploadService uploadService, IWebHostEnvironment env,
-            IConfiguration configuration, IDemandeSignatureService demandeSignatureService)
+            IConfiguration configuration, IDemandeSignatureService demandeSignatureService, IQrCodeGenerateur qrCodeGenerateur)
         {
             _context = context;
             _env = env;
             _configuration = configuration;
+            _qrCodeGenerateur = qrCodeGenerateur;
             _uploadService = uploadService;
         }
 
@@ -116,15 +133,71 @@ namespace Grs.BioRestock.Server.Services.Document
 
         public async Task<Result<string>> SignerDemande(int id)
         {
-            var document = await _context.DocumentSignatures.FirstOrDefaultAsync(x => x.Id == id);
-
-            var fileStorage = "Files\\Documents\\";
-            var rawDocument = Path.Combine(fileStorage, document.FileName);
-
             var code_url = Guid.NewGuid().ToString("N");
+            var signed = $"https://localhost:3601/DemandeSignature/verification/{code_url}";
+            
+            // Mise en forme du code QR
+            BarcodeQRCode qr = new BarcodeQRCode(signed, 60, 60, null);
+            var imgQR = qr.GetImage();
 
+            var document = await _context.DocumentSignatures.FirstOrDefaultAsync(x => x.Id == id);
+            
+            var folderName = "Files\\Documents\\";
+            var fileStorage = "Files\\Documents\\";
 
-            throw new System.NotImplementedException();
+            var filePath = System.IO.Path.Combine(folderName, document.FileName);
+            var filePathS = System.IO.Path.Combine(fileStorage, $"{code_url}.pdf");
+
+            PdfReader reader = new PdfReader(filePath);
+            for (int i = 1; i <= reader.NumberOfPages; i++)
+            {
+                string text = PdfTextExtractor.GetTextFromPage(reader, i, new SimpleTextExtractionStrategy());
+                string[] lines = text.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
+                foreach (string line in lines)
+                {
+                    Console.WriteLine(line);
+                }
+                if (i == reader.NumberOfPages)
+                {
+                    FileStream fs = new FileStream(filePathS, FileMode.Create, FileAccess.Write, FileShare.None);
+                    PdfStamper stamper = new PdfStamper(reader, fs);
+                    PdfContentByte cb = stamper.GetOverContent(i);
+
+                    // Positionnement du code QR
+                    imgQR.SetAbsolutePosition(0, 0);
+                    cb.AddImage(imgQR);
+                    // Enregistrement du fichier modifié
+                    stamper.Close();
+                }
+            }
+            document.FileUrlsSigne = filePathS;
+            document.DateSignature = DateTime.Now;
+            document.CodeSignature = code_url;
+            document.demandeStatut = DemandeStatut.Signé;
+            _context.DocumentSignatures.Update(document);
+            await _context.SaveChangesAsync(); 
+            return await Result<string>.SuccessAsync("le document a été signé");
+        }
+
+        public async Task<Result<DocumentDto>> VerifierSingature(string code)
+        {
+            var document = await _context.DocumentSignatures.SingleOrDefaultAsync(x => x.CodeSignature == code);
+            var reponse = document.Adapt<DocumentDto>();
+            return await Result<DocumentDto>.SuccessAsync(reponse);
+        }
+
+        public async Task<Result<string>> AnnuleDemande(int id)
+        {
+            var document = await _context.DocumentSignatures.SingleOrDefaultAsync(x => x.Id == id);
+            if (document == null)
+            {
+                return await Result<string>.SuccessAsync("le document n'existe pas");
+            }
+            document.demandeStatut = DemandeStatut.Annulé;
+            document.DateAnnulation = DateTime.Now;
+            _context.DocumentSignatures.Update(document);
+            await _context.SaveChangesAsync();
+            return await Result<string>.SuccessAsync("Document Annulé");
         }
     }
 }

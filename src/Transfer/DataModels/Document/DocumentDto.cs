@@ -18,6 +18,7 @@ namespace Grs.BioRestock.Transfer.DataModels.Document
         public string CodeSignature { get; set; }
         public DateTime DateSignature { get; set; }
         public DateTime DateEtablissement { get; set; }
+        public DateTime DateAnnulation { get; set; }
         public DateTime CreatedOn { get; set; }
         public int IdDemandeSignature { get; set; }
         public UploadRequest UploadRequest { get; set; }

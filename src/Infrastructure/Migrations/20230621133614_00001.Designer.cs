@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Grs.BioRestock.Infrastructure.Migrations
 {
     [DbContext(typeof(UniContext))]
-    [Migration("20230618131053_00001")]
+    [Migration("20230621133614_00001")]
     partial class _00001
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -76,6 +76,9 @@ namespace Grs.BioRestock.Infrastructure.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("DateAnnulation")
                         .HasColumnType("datetime2");
 
                     b.Property<DateTime>("DateEtablissement")

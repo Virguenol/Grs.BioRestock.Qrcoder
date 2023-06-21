@@ -49,6 +49,7 @@ using Grs.BioRestock.Infrastructure.Services.Date;
 using Grs.BioRestock.Infrastructure.Sage.Configurations;
 using Grs.BioRestock.Server.Services.Document;
 using Grs.BioRestock.Server.Services.Demande;
+using Grs.BioRestock.Server.Services.QrCode;
 
 namespace Grs.BioRestock.Server.Extensions
 {
@@ -254,6 +255,8 @@ namespace Grs.BioRestock.Server.Extensions
           
             services.AddScoped<IDocumentService, DocumentService>();
             services.AddScoped<IDemandeSignatureService, DemandeSignatureService>();
+
+            services.AddScoped<IQrCodeGenerateur, QrCodeGenerateur>();
             services.AddTransient<ITemplateService, TemplateService>();
 
 

@@ -17,6 +17,7 @@ namespace Grs.BioRestock.Domain.Entities
         public string CodeSignature { get; set; }
         public DateTime DateSignature { get; set; }
         public DateTime DateEtablissement { get; set; }
+        public DateTime DateAnnulation { get; set; }
         public int IdDemandeSignature { get; set; }
         public DemandeStatut demandeStatut { get; set; } = DemandeStatut.Nouveau;
         public virtual DemandeSignature DemandeSignature { get; set; }
