@@ -25,6 +25,12 @@ namespace Grs.BioRestock.Server.Controllers.DemandeService
             return await _documentService.GetListeDocument(idDemande);
         }
 
+        [HttpGet(nameof(GetAll))]
+        public async Task<Result<List<DocumentDto>>> GetAll()
+        {
+            return await _documentService.GetListeDocument();
+        }
+
         [HttpPost(nameof(AddEdit))]
         public async Task<Result<string>> AddEdit(DocumentDto request)
         {
@@ -60,5 +66,6 @@ namespace Grs.BioRestock.Server.Controllers.DemandeService
         {
             return await _documentService.AnnuleDemande(id);
         }
+
     }
 }

@@ -9,10 +9,16 @@
     @if (document.CodeSignature == valeurCode)
     {
         <MudText Typo="Typo.h4">le dcument @valeurCode est vérifier</MudText>
+        <MudSpacer/>
+        <br />
+        <embed src="@document.FileUrlsSigne" 
+               width="640"
+               height="940"
+               title="Document" />
     }
     else
     {
-        <MudText Typo="Typo.h4">le dcument @valeurCode n'est pas vérifier'</MudText>
+        <MudText Typo="Typo.h4">le dcument n exiest pas</MudText>
     }
 </MudPaper>
 
@@ -27,15 +33,21 @@
 
     protected override async Task OnInitializedAsync()
     {
+        await VerificationDoc(valeurCode);
+    }
+
+    private async Task VerificationDoc(string id)
+    {
         try
         {
             var raw = await _documentClient.VerifierSingatureAsync(valeurCode);
             if (raw.Succeeded)
-            document = raw.Data;
+                document = raw.Data;
         }
         catch (Exception)
         {
             throw;
         }
     }
+
 }

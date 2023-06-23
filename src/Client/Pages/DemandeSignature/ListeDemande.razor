@@ -10,8 +10,7 @@
     </ToolBarContent>
     <HeaderContent>
         <MudTh><MudTableSortLabel SortBy="new Func<DemandeSignatureDto, object>(x => x.Id)">Id</MudTableSortLabel></MudTh>
-        <MudTh><MudTableSortLabel SortBy="new Func<DemandeSignatureDto, object>(x => x.Designation)">Designation</MudTableSortLabel></MudTh>
-        <MudTh><MudTableSortLabel SortBy="new Func<DemandeSignatureDto, object>(x => x.NomClient)">Nom client</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel SortBy="new Func<DemandeSignatureDto, object>(x => x.Titre)">Document</MudTableSortLabel></MudTh>
         <MudTh><MudTableSortLabel SortBy="new Func<DemandeSignatureDto, object>(x => x.CreatedOn)">Date De création</MudTableSortLabel></MudTh>
         <MudTh Style="text-align: center">
             Action
@@ -19,18 +18,16 @@
     </HeaderContent>
     <RowTemplate>
         <MudTd DataLabel="Id">@context.Id</MudTd>
-        <MudTd DataLabel="Designation">@context.Designation</MudTd>
-        <MudTd DataLabel="Nom Client">@context.NomClient</MudTd>
+        <MudTd DataLabel="Designation">@context.Titre</MudTd>
         <MudTd DataLabel="Date Creation">@context.CreatedOn.ToString("dd/MM/yyyy")</MudTd>
 
 
         <MudTd Style="text-align: right">
             <MudMenu Label="Actions" Variant="Variant.Filled" DisableElevation="true" EndIcon="@Icons.Filled.KeyboardArrowDown" IconColor="Color.Secondary" Direction="Direction.Left" OffsetX="true">
-                <MudMenuItem>Modifier</MudMenuItem>
+                <MudMenuItem OnClick="@(() => ListeModal(@context.Id))">Liste Doc</MudMenuItem>
+                 <MudMenuItem>Modifier</MudMenuItem>               
                 <MudMenuItem>Supprimer</MudMenuItem>
-                <MudMenuItem>Annuler</MudMenuItem>
             </MudMenu>
-            <MudButton Variant="Variant.Filled" OnClick="@(() => ListeModal(@context.Id))">Liste</MudButton>
         </MudTd>
     </RowTemplate>
     <PagerContent>
@@ -58,7 +55,6 @@
     private async Task GetAllDemande()
     {
         _loaded = true;
-
         try
         {
             var response = await _demandeClient.GetAllAsync();
@@ -72,16 +68,14 @@
             throw;
         }
         _loaded = false;
-
     }
 
     private async Task ListeModal(int id)
     {
-
         var parameters = new DialogParameters();
 
         parameters.Add(nameof(ListeDocument.IdDocument), id);
-        var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true };
+        var options = new DialogOptions { FullScreen = true, CloseButton = true };
         var dialog = _dialogService.Show<ListeDocument>(id == 0 ? Localizer["Create"] : Localizer["Edit"], parameters, options);
         var result = await dialog.Result;
         if (!result.Cancelled)
@@ -102,8 +96,7 @@
                 parameters.Add(nameof(AddEditModal.ModelDemande), new DemandeSignatureDto
                     {
                         Id = demandeSignature.Id,
-                        Designation = demandeSignature.Designation,
-                        NomClient = demandeSignature.NomClient,
+                        Titre = demandeSignature.Titre,
                     });
             }
         }
@@ -120,11 +113,7 @@
     private bool Search(DemandeSignatureDto demande)
     {
         if (string.IsNullOrWhiteSpace(_searchString)) return true;
-        if (demande.Designation?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true)
-        {
-            return true;
-        }
-        if (demande.NomClient?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true)
+        if (demande.Titre?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true)
         {
             return true;
         }

@@ -38,8 +38,7 @@ namespace Grs.BioRestock.Infrastructure.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Designation = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    NomClient = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Titre = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     DateAnnulation = table.Column<DateTime>(type: "datetime2", nullable: false),
                     DateEtablissement = table.Column<DateTime>(type: "datetime2", nullable: false),
                     CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -116,10 +115,13 @@ namespace Grs.BioRestock.Infrastructure.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Title = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Designation = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     FileName = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     FileUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     FileUrlsSigne = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    NomClient = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    valeur = table.Column<decimal>(type: "decimal(28,8)", nullable: false),
+                    NumberDoc = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     CodeSignature = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     DateSignature = table.Column<DateTime>(type: "datetime2", nullable: false),
                     DateEtablissement = table.Column<DateTime>(type: "datetime2", nullable: false),

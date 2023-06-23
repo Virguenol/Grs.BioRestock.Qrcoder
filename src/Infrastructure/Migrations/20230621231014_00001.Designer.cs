@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Grs.BioRestock.Infrastructure.Migrations
 {
     [DbContext(typeof(UniContext))]
-    [Migration("20230621133614_00001")]
+    [Migration("20230621231014_00001")]
     partial class _00001
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -44,16 +44,13 @@ namespace Grs.BioRestock.Infrastructure.Migrations
                     b.Property<DateTime>("DateEtablissement")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Designation")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("LastModifiedBy")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("LastModifiedOn")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("NomClient")
+                    b.Property<string>("Titre")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -90,6 +87,9 @@ namespace Grs.BioRestock.Infrastructure.Migrations
                     b.Property<int?>("DemandeSignatureId")
                         .HasColumnType("int");
 
+                    b.Property<string>("Designation")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("FileName")
                         .HasColumnType("nvarchar(max)");
 
@@ -108,11 +108,17 @@ namespace Grs.BioRestock.Infrastructure.Migrations
                     b.Property<DateTime?>("LastModifiedOn")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Title")
+                    b.Property<string>("NomClient")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NumberDoc")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("demandeStatut")
                         .HasColumnType("int");
+
+                    b.Property<decimal>("valeur")
+                        .HasColumnType("decimal(28,8)");
 
                     b.HasKey("Id");
 

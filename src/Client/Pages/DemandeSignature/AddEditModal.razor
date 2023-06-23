@@ -31,15 +31,13 @@
                     <MudTextField Disabled For="@(() => ModelListe.Id)" @bind-Value="ModelListe.Id" Label="Id" />
                 </MudItem>
                 <MudItem xs="12" md="6">
-                    <MudTextField For="@(() => ModelDemande.NomClient)" @bind-Value="ModelDemande.NomClient" Label="Nom Client" />
+                    <MudTextField For="@(() => ModelDemande.Titre)" @bind-Value="ModelDemande.Titre" Label="Nom Client" />
                 </MudItem>
-                
                 <MudItem xs="12" md="6">
-                    <MudTextField For="@(() => ModelDemande.Designation)" @bind-Value="ModelDemande.Designation" Label="Designation" />
+                    <MudTextField Disabled For="@(() => ModelListe.Designation)" @bind-Value="ModelListe.Designation" Label="Id" />
                 </MudItem>
-
                 <MudItem xs="12" md="6">
-                    <MudTextField For="@(() => ModelListe.Title)" @bind-Value="ModelListe.Title" Label="Titre Document" />
+                    <MudTextField Disabled For="@(() => ModelListe.NomClient)" @bind-Value="ModelListe.NomClient" Label="Id" />
                 </MudItem>
                 <MudItem xs="12" md="6">
                     <MudItem>

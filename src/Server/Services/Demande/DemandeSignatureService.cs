@@ -55,8 +55,7 @@ namespace Grs.BioRestock.Server.Services.Demande
                 }
                 else
                 {
-                    existingdemande.NomClient = request.NomClient;
-                    existingdemande.Designation = request.Designation;
+                    existingdemande.Titre = request.Titre;
                     existingdemande.LastModifiedOn = DateTime.Now;
                     _context.DemandeSignatures.Update(existingdemande);
                     await _context.SaveChangesAsync();

@@ -26,12 +26,15 @@ using System.Threading.Tasks;
 using ZXing;
 using ZXing.PDF417;
 using ZXing.QrCode.Internal;
+using Microsoft.JSInterop;
+using System.Net.Http;
 
 namespace Grs.BioRestock.Server.Services.Document
 {
     public interface IDocumentService
     {
         Task<Result<List<DocumentDto>>> GetListeDocument(int idDemande);
+        Task<Result<List<DocumentDto>>> GetListeDocument();
         Task<Result<string>> AddDocument(DocumentDto demandeSignature);
         Task<Result<DocumentDto>> VerifierSingature(string valeurCode);
         Task<Result<DocumentDto>> GetByIdDocument(int id);
@@ -91,7 +94,8 @@ namespace Grs.BioRestock.Server.Services.Document
                 {
                     demandeSignature.FileUrl = _uploadService.UploadAsync(uploadRequest);
                 }
-                document.Title = demandeSignature.Title;
+                document.NomClient = demandeSignature.NomClient;
+                document.Designation = demandeSignature.Designation;
                 document.FileUrl = demandeSignature.FileUrl;
                 document.FileName = demandeSignature?.FileName;
                 document.LastModifiedOn = DateTime.Now;
@@ -131,13 +135,20 @@ namespace Grs.BioRestock.Server.Services.Document
             return await Result<List<DocumentDto>>.SuccessAsync(demandeResponse);
         }
 
+        public async Task<Result<List<DocumentDto>>> GetListeDocument()
+        {
+            var document = await _context.DocumentSignatures.ToListAsync();
+            var demandeResponse = document.Adapt<List<DocumentDto>>();
+            return await Result<List<DocumentDto>>.SuccessAsync(demandeResponse);
+        }
+
         public async Task<Result<string>> SignerDemande(int id)
         {
             var code_url = Guid.NewGuid().ToString("N");
-            var signed = $"https://localhost:3601/DemandeSignature/verification/{code_url}";
+            var signed = $"https://localhost:3601/DemandeSignature/Validation/{code_url}";
             
             // Mise en forme du code QR
-            BarcodeQRCode qr = new BarcodeQRCode(signed, 60, 60, null);
+            BarcodeQRCode qr = new BarcodeQRCode(signed, 70, 70, null);
             var imgQR = qr.GetImage();
 
             var document = await _context.DocumentSignatures.FirstOrDefaultAsync(x => x.Id == id);
@@ -199,5 +210,54 @@ namespace Grs.BioRestock.Server.Services.Document
             await _context.SaveChangesAsync();
             return await Result<string>.SuccessAsync("Document Annulé");
         }
+
+        //public async Task DownloadPdf(int id)
+        //{
+        //    var folderName = "Files\\Documents\\";
+
+        //    var document = await _context.DocumentSignatures.FirstOrDefaultAsync(x => x.Id == id);
+
+        //    // URL vers le fichier PDF
+        //    var filePath = System.IO.Path.Combine(folderName, document.FileName);
+
+        //    // Créer une instance Http de la bibliothèque HttpClient pour télécharger le fichier
+        //    //using (HttpClient httpClient = new HttpClient())
+        //    //{
+        //    //    // Récupérer le contenu du fichier PDF
+        //    //    byte[] pdfBytes = await httpClient.GetByteArrayAsync(filePath);
+
+        //    //    // Nom du fichier PDF à télécharger
+        //    //    string fileName = "myfile.pdf";
+
+        //    //    // Type MIME pour les fichiers PDF
+        //    //    const string mimeType = "application/pdf";
+
+        //        // Télécharger le fichier en indiquant le nom de fichier et le type MIME
+        //        await JSRuntime.InvokeVoidAsync("saveAsFile", "PdfFileName1", document.FileName);
+
+
+        //    }
+        //}
+        //public async Task<List<DocumentDto>> SearchArticlesAsync(Recherche search)
+        //{
+        //    var query = _context.DocumentSignatures.AsQueryable();
+
+        //    if (!string.IsNullOrEmpty(search.Keyword))
+        //    {
+        //        query = query.Where(a => a.Title.Contains(search.Keyword) || a.FileUrl.Contains(search.Keyword));
+        //    }
+
+        //    if (!string.IsNullOrEmpty(search.))
+        //    {
+        //        query = query.Where(a => a.Category.ToLower() == search.Category.ToLower());
+        //    }
+
+
+
+        //    return await query.ToListAsync();
+        //}
+
+        
+        
     }
 }

@@ -12,8 +12,8 @@ using Grs.BioRestock.Transfer.Requests;
 //using Grs.BioRestock.Transfer.Requests.Animation;
 using Grs.BioRestock.Shared.Enums;
 using Grs.BioRestock.Shared.Enums.Animation;
-using Grs.BioRestock.Transfer.DataModels.Document;
 using Grs.BioRestock.Transfer.DataModels.Demande;
+using Grs.BioRestock.Transfer.DataModels.Document;
 
 #pragma warning disable 108 // Disable "CS0108 '{derivedDto}.ToJson()' hides inherited member '{dtoBase}.ToJson()'. Use the new keyword if hiding was intended."
 #pragma warning disable 114 // Disable "CS0114 '{derivedDto}.RaisePropertyChanged(String)' hides inherited member 'dtoBase.RaisePropertyChanged(String)'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword."
@@ -936,12 +936,21 @@ namespace Grs.BioRestock.Client.Infrastructure.ApiClients
     {
         /// <returns>Success</returns>
         /// <exception cref="ApiClientException">A server side error occurred.</exception>
-        System.Threading.Tasks.Task<DocumentDtoListResult> GetAllAsync(int idDemande);
+        System.Threading.Tasks.Task<DocumentDtoListResult> GetAllGetAsync(int idDemande);
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>Success</returns>
         /// <exception cref="ApiClientException">A server side error occurred.</exception>
-        System.Threading.Tasks.Task<DocumentDtoListResult> GetAllAsync(int idDemande, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<DocumentDtoListResult> GetAllGetAsync(int idDemande, System.Threading.CancellationToken cancellationToken);
+
+        /// <returns>Success</returns>
+        /// <exception cref="ApiClientException">A server side error occurred.</exception>
+        System.Threading.Tasks.Task<DocumentDtoListResult> GetAllGetAsync();
+
+        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <returns>Success</returns>
+        /// <exception cref="ApiClientException">A server side error occurred.</exception>
+        System.Threading.Tasks.Task<DocumentDtoListResult> GetAllGetAsync(System.Threading.CancellationToken cancellationToken);
 
         /// <returns>Success</returns>
         /// <exception cref="ApiClientException">A server side error occurred.</exception>
@@ -1028,15 +1037,15 @@ namespace Grs.BioRestock.Client.Infrastructure.ApiClients
 
         /// <returns>Success</returns>
         /// <exception cref="ApiClientException">A server side error occurred.</exception>
-        public virtual System.Threading.Tasks.Task<DocumentDtoListResult> GetAllAsync(int idDemande)
+        public virtual System.Threading.Tasks.Task<DocumentDtoListResult> GetAllGetAsync(int idDemande)
         {
-            return GetAllAsync(idDemande, System.Threading.CancellationToken.None);
+            return GetAllGetAsync(idDemande, System.Threading.CancellationToken.None);
         }
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>Success</returns>
         /// <exception cref="ApiClientException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<DocumentDtoListResult> GetAllAsync(int idDemande, System.Threading.CancellationToken cancellationToken)
+        public virtual async System.Threading.Tasks.Task<DocumentDtoListResult> GetAllGetAsync(int idDemande, System.Threading.CancellationToken cancellationToken)
         {
             if (idDemande == null)
                 throw new System.ArgumentNullException("idDemande");
@@ -1044,6 +1053,80 @@ namespace Grs.BioRestock.Client.Infrastructure.ApiClients
             var urlBuilder_ = new System.Text.StringBuilder();
             urlBuilder_.Append("api/Document/GetAll/{idDemande}");
             urlBuilder_.Replace("{idDemande}", System.Uri.EscapeDataString(ConvertToString(idDemande, System.Globalization.CultureInfo.InvariantCulture)));
+
+            var client_ = _httpClient;
+            var disposeClient_ = false;
+            try
+            {
+                using (var request_ = new System.Net.Http.HttpRequestMessage())
+                {
+                    request_.Method = new System.Net.Http.HttpMethod("GET");
+                    request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("text/plain"));
+
+                    PrepareRequest(client_, request_, urlBuilder_);
+
+                    var url_ = urlBuilder_.ToString();
+                    request_.RequestUri = new System.Uri(url_, System.UriKind.RelativeOrAbsolute);
+
+                    PrepareRequest(client_, request_, url_);
+
+                    var response_ = await client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+                    var disposeResponse_ = true;
+                    try
+                    {
+                        var headers_ = System.Linq.Enumerable.ToDictionary(response_.Headers, h_ => h_.Key, h_ => h_.Value);
+                        if (response_.Content != null && response_.Content.Headers != null)
+                        {
+                            foreach (var item_ in response_.Content.Headers)
+                                headers_[item_.Key] = item_.Value;
+                        }
+
+                        ProcessResponse(client_, response_);
+
+                        var status_ = (int)response_.StatusCode;
+                        if (status_ == 200)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<DocumentDtoListResult>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new ApiClientException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            return objectResponse_.Object;
+                        }
+                        else
+                        {
+                            var responseData_ = response_.Content == null ? null : await response_.Content.ReadAsStringAsync().ConfigureAwait(false);
+                            throw new ApiClientException("The HTTP status code of the response was not expected (" + status_ + ").", status_, responseData_, headers_, null);
+                        }
+                    }
+                    finally
+                    {
+                        if (disposeResponse_)
+                            response_.Dispose();
+                    }
+                }
+            }
+            finally
+            {
+                if (disposeClient_)
+                    client_.Dispose();
+            }
+        }
+
+        /// <returns>Success</returns>
+        /// <exception cref="ApiClientException">A server side error occurred.</exception>
+        public virtual System.Threading.Tasks.Task<DocumentDtoListResult> GetAllGetAsync()
+        {
+            return GetAllGetAsync(System.Threading.CancellationToken.None);
+        }
+
+        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <returns>Success</returns>
+        /// <exception cref="ApiClientException">A server side error occurred.</exception>
+        public virtual async System.Threading.Tasks.Task<DocumentDtoListResult> GetAllGetAsync(System.Threading.CancellationToken cancellationToken)
+        {
+            var urlBuilder_ = new System.Text.StringBuilder();
+            urlBuilder_.Append("api/Document/GetAll");
 
             var client_ = _httpClient;
             var disposeClient_ = false;

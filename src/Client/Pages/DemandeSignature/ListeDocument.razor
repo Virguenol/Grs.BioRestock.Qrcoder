@@ -1,5 +1,7 @@
 ﻿@using Grs.BioRestock.Shared.Enums.Demande;
 @using Grs.BioRestock.Transfer.DataModels.Document;
+@using System.IO;
+@inject IJSRuntime _JSRuntime;
 
 @*@if (!_loaded)
 {
@@ -7,7 +9,7 @@
 }
 else
 {*@
-
+    
     <MudTable Items="@allDocument" Filter="new Func<DocumentDto, bool>(Search)" @bind-role="document" Hover="true" Breakpoint="Breakpoint.Sm" Loading="@_loaded" LoadingProgressColor="Color.Info">
         <ToolBarContent>
         <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => AddDocument(@IdDocument))">Ajouter</MudButton>
@@ -16,8 +18,11 @@ else
         </ToolBarContent>
         <HeaderContent>
             <MudTh><MudTableSortLabel SortBy="new Func<DocumentDto, object>(x => x.Id)">Id</MudTableSortLabel></MudTh>
-            <MudTh><MudTableSortLabel SortBy="new Func<DocumentDto, object>(x => x.Title)">Designation</MudTableSortLabel></MudTh>
-             <MudTh><MudTableSortLabel SortBy="new Func<DocumentDto, object>(x => x.CreatedOn)">Nom création</MudTableSortLabel></MudTh>
+            <MudTh><MudTableSortLabel SortBy="new Func<DocumentDto, object>(x => x.Designation)">Designation</MudTableSortLabel></MudTh>
+            <MudTh><MudTableSortLabel SortBy="new Func<DocumentDto, object>(x => x.NomClient)">Nom Client</MudTableSortLabel></MudTh>
+            <MudTh><MudTableSortLabel SortBy="new Func<DocumentDto, object>(x => x.valeur)">Valeur</MudTableSortLabel></MudTh>
+             <MudTh><MudTableSortLabel SortBy="new Func<DocumentDto, object>(x => x.DateEtablissement)">Date Création</MudTableSortLabel></MudTh>
+             <MudTh><MudTableSortLabel SortBy="new Func<DocumentDto, object>(x => x.DateEtablissement)">Date Signature</MudTableSortLabel></MudTh>
             <MudTh><MudTableSortLabel SortBy="new Func<DocumentDto, object>(x => x.FileUrl)">Fichier</MudTableSortLabel></MudTh>
             <MudTh><MudTableSortLabel SortBy="new Func<DocumentDto, object>(x => x.FileUrlsSigne)">Fichier Signé</MudTableSortLabel></MudTh>
             <MudTh Style="text-align: center">
@@ -25,9 +30,11 @@ else
             </MudTh>
         </HeaderContent>
         <RowTemplate>
-            <MudTd DataLabel="Nr">@context.Id</MudTd>
-            <MudTd DataLabel="Sign">@context.Title</MudTd>
-            <MudTd DataLabel="Position">@context.CreatedOn.ToString("dd/MM/yyyy")</MudTd>
+            <MudTd DataLabel="Id">@context.Id</MudTd>
+            <MudTd DataLabel="Designation">@context.Designation</MudTd>
+            <MudTd DataLabel="Nom">@context.NomClient</MudTd>
+        <MudTd DataLabel="Position">@context.DateEtablissement.ToString("dd/MM/yyyy")</MudTd>
+        <MudTd DataLabel="Position">@context.DateEtablissement.ToString("dd/MM/yyyy")</MudTd>
             <MudTd DataLabel="FichierJoint">
                 <MudAlert Severity="Severity.Normal" Square="true" Dense="true">
                     @*@context.FileName*@
@@ -54,25 +61,45 @@ else
                 <MudTd DataLabel="Position">@context.demandeStatut</MudTd>
             }
             <MudTd Style="text-align: right">
-            
-                    <MudMenu Label="Actions" Variant="Variant.Filled" DisableElevation="true" EndIcon="@Icons.Filled.KeyboardArrowDown" IconColor="Color.Secondary" Direction="Direction.Left" OffsetX="true">
 
-                     <MudMenuItem OnClick="(() => InvokeModal(Convert.ToString(context.Id)))">@Localizer["Modifier"]</MudMenuItem>
+                 <MudMenu Label="Actions" Variant="Variant.Filled" DisableElevation="true" EndIcon="@Icons.Filled.KeyboardArrowDown" IconColor="Color.Secondary" Direction="Direction.Left" OffsetX="true">
                        
-                     <MudMenuItem OnClick="@(() => SupprimerDemande(@context.Id))">Supprimer</MudMenuItem>
+                         <MudMenuItem OnClick="@(() => DownloadFile(@context.Id))">Telecharger Doc non signé</MudMenuItem>
+                        @if (context.demandeStatut == statutSigner)
+                        {
+                            <MudMenuItem OnClick="@(() => DownloadFileSigne(@context.Id))">Telecharger Doc signé</MudMenuItem>
+                        }
+                        <MudMenuItem OnClick="@(() => OpenPDF(@context.Id))">Voir</MudMenuItem>
 
-                     <MudMenuItem OnClick="@(() => SignerDocument(@context.Id))">Signature</MudMenuItem>
-                        
-                        
-                        
+                 </MudMenu>
+                    <MudSpacer/><br />
+                    <MudMenu Label="Actions" Variant="Variant.Filled" DisableElevation="true" EndIcon="@Icons.Filled.KeyboardArrowDown" IconColor="Color.Secondary" Direction="Direction.Left" OffsetX="true">
+                        @if(context.demandeStatut != statutSigner)
+                        {
+                            <MudMenuItem OnClick="(() => InvokeModal(Convert.ToString(context.Id)))">@Localizer["Modifier"]</MudMenuItem>
+                        }
+                        @if (context.demandeStatut != statutSigner)
+                        {
+                            <MudMenuItem OnClick="@(() => SupprimerDemande(@context.Id))">Supprimer</MudMenuItem>
+                        }
+                        @if (context.demandeStatut != statutSigner)
+                        {
+                         <MudMenuItem OnClick="@(() => SignerDocument(@context.Id))">Signature</MudMenuItem>
+                        }
                     </MudMenu>
-                
             </MudTd>
         </RowTemplate>
         <PagerContent>
             <MudTablePager />
         </PagerContent>
     </MudTable>
+    <br/>
+
+    <div style="width:50%;height:50%;align-content:center;text-align:center;">
+        <iframe id="pdfViewer" src="" style="width:100%;height:100%;"></iframe>
+    </div>
+
+    
 @*}*@
 
 @code {
@@ -84,12 +111,15 @@ else
     private DemandeStatut statutNouveau = DemandeStatut.Nouveau;
 
     [Inject] private IDocumentClient _documentClient { get; set; }
+    //[Inject] private IJSRuntime js;
 
     [Parameter] public int IdDocument { get; set; }
 
     protected DocumentDto document { get; set; }
 
     protected List<DocumentDto> allDocument { get; set; } = new();
+
+
 
 
 
@@ -105,7 +135,7 @@ else
         _loaded = true;
         try
         { 
-            var response = await _documentClient.GetAllAsync(IdDocument);
+            var response = await _documentClient.GetAllGetAsync(IdDocument);
             if (response.Succeeded)
             {
                 allDocument = response.Data.ToList();
@@ -121,7 +151,7 @@ else
     private bool Search(DocumentDto demande)
     {
         if (string.IsNullOrWhiteSpace(_searchString)) return true;
-        if (demande.Title?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true)
+        if (demande.Designation?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true)
         {
             return true;
         }
@@ -199,7 +229,7 @@ else
                 parameters.Add(nameof(AddEditDocModel.ModelDocument), new DocumentDto
                     {
                         Id = document.Id,
-                        Title = document.Title,
+                        NomClient = document.NomClient,
                     });
             }
         }
@@ -221,6 +251,20 @@ else
         parameters.Add(nameof(AddEditDocModel.IdDocumentAdd), id);
         var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true };
         var dialog = _dialogService.Show<AddEditDocModel>(id == 0 ? Localizer["Create"] : Localizer["Edit"], parameters, options);
+        var result = await dialog.Result;
+        if (!result.Cancelled)
+        {
+            OnSearch("");
+            //await GetAllDemande();
+        }
+    }
+
+    private async Task VoirFile(int id)
+    {
+        var parameters = new DialogParameters();
+        parameters.Add(nameof(AfficherFile.IdFile), id);
+        var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true };
+        var dialog = _dialogService.Show<AfficherFile>(id == 0 ? Localizer["Create"] : Localizer["Edit"], parameters, options);
         var result = await dialog.Result;
         if (!result.Cancelled)
         {
@@ -262,4 +306,28 @@ else
             }
         }
     }
+
+    private async Task DownloadFile(int id)
+    {
+        var document = allDocument.FirstOrDefault(d => d.Id == id);
+        var fileName = "NomFile.pdf";
+        var fileURL = document.FileUrl;
+        await _JSRuntime.InvokeVoidAsync("triggerFileDownload", fileName, fileURL);
+    }
+
+    private async Task DownloadFileSigne(int id)
+    {
+        var document = allDocument.FirstOrDefault(d => d.Id == id);
+        var fileName = "NomFileSigne.pdf";
+        var fileURL = document.FileUrlsSigne;
+        await _JSRuntime.InvokeVoidAsync("triggerFileDownload", fileName, fileURL);
+    }
+
+    public void OpenPDF(int IdFile)
+    {
+        var document = allDocument.FirstOrDefault(d => d.Id == IdFile);
+        string filePath = document.FileUrl;
+        ((IJSRuntime)_JSRuntime).InvokeAsync<object>("openPDF", filePath);
+    }
+
 }
