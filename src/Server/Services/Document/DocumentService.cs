@@ -136,7 +136,7 @@ namespace Grs.BioRestock.Server.Services.Document
         public async Task<Result<string>> SignerDemande(int id)
         {
             var code_url = Guid.NewGuid().ToString("N");
-            var signed = $"https://localhost:3601/DemandeSignature/Validation/{code_url}";
+            var signed = $"https://localhost:3601/Validation_document/{code_url}";
 
             // Mise en forme du code QR
             BarcodeQRCode qr = new BarcodeQRCode(signed, 70, 70, null);

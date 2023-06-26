@@ -281,7 +281,7 @@
         var parameters = new DialogParameters();
         parameters.Add(nameof(ViewFichier.IdFile), id);
         var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true };
-        var dialog = _dialogService.Show<ViewFichier>(id == 0 ? Localizer["Create"] : Localizer["Edit"], parameters, options);
+        var dialog = _dialogService.Show<ViewFichier>(id == 0 ? Localizer["Create"] : Localizer["Voir le fichier"], parameters, options);
         var result = await dialog.Result;
         if (!result.Cancelled)
         {
