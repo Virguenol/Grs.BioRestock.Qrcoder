@@ -155,10 +155,10 @@ namespace Grs.BioRestock.Server.Services.Document
             {
                 string text = PdfTextExtractor.GetTextFromPage(reader, i, new SimpleTextExtractionStrategy());
                 string[] lines = text.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
-                foreach (string line in lines)
-                {
-                    Console.WriteLine(line);
-                }
+                //foreach (string line in lines)
+                //{
+                //    Console.WriteLine(line);
+                //}
                 if (i == reader.NumberOfPages)
                 {
                     FileStream fs = new FileStream(filePathS, FileMode.Create, FileAccess.Write, FileShare.None);
