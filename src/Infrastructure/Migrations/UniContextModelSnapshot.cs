@@ -70,6 +70,9 @@ namespace Grs.BioRestock.Infrastructure.Migrations
                     b.Property<string>("CreatedBy")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime>("CreatedCreation")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime>("CreatedOn")
                         .HasColumnType("datetime2");
 
@@ -112,11 +115,11 @@ namespace Grs.BioRestock.Infrastructure.Migrations
                     b.Property<string>("NumberDoc")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<decimal>("Valeur")
+                        .HasColumnType("decimal(28,8)");
+
                     b.Property<int>("demandeStatut")
                         .HasColumnType("int");
-
-                    b.Property<decimal>("valeur")
-                        .HasColumnType("decimal(28,8)");
 
                     b.HasKey("Id");
 

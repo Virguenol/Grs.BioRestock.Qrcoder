@@ -28,15 +28,15 @@
             <MudGrid>
                 <MudItem xs="12" md="6">
                     <MudTextField Disabled For="@(() => ModelDocument.Id)" @bind-Value="ModelDocument.Id" Label="Id" />
-                </MudItem>              
-                <MudItem xs="12" md="6">
-                    <MudTextField For="@(() => ModelDocument.Designation)" @bind-Value="ModelDocument.Designation" Label="Titre Document" />
                 </MudItem>
                 <MudItem xs="12" md="6">
-                    <MudTextField For="@(() => ModelDocument.NomClient)" @bind-Value="ModelDocument.NomClient" Label="Titre Document" />
+                    <MudTextField For="@(() => ModelDocument.Designation)" @bind-Value="ModelDocument.Designation" Label="Designation" />
                 </MudItem>
                 <MudItem xs="12" md="6">
-                    <MudTextField For="@(() => ModelDocument.valeur)" @bind-Value="ModelDocument.valeur" Label="Titre Document" />
+                    <MudTextField For="@(() => ModelDocument.NomClient)" @bind-Value="ModelDocument.NomClient" Label="Nom Client" />
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudTextField For="@(() => ModelDocument.Valeur)" @bind-Value="ModelDocument.Valeur" Label="Valeur" />
                 </MudItem>
 
                 <MudItem xs="12" md="6">
@@ -64,7 +64,7 @@
                                     Upload
                                 </MudButton>
                             }
-                            else if (!string.IsNullOrEmpty(ModelDocument.FileUrl))
+                            else 
                             {
                                 <MudButton HtmlTag="label"
                                            Variant="Variant.Text"
@@ -98,14 +98,17 @@
 
     [CascadingParameter] private MudDialogInstance MudDialog { get; set; }
     [CascadingParameter] private HubConnection HubConnection { get; set; }
+
+    [ParameterAttribute]
     public DocumentDto ModelDocument { get; set; } = new();
+
+    [ParameterAttribute]
+    public int idDossier { get; set; } 
 
     [Inject] private IDocumentClient _documentClient { get; set; }
     private const long MAX_FILE_SIZE = 1024 * 1024 * 10;
     private List<string> errors = new();
     private FluentValidationValidator _fluentValidationValidator;
-
-    [Parameter] public int IdDocumentAdd { get; set; }
 
 
 
@@ -141,7 +144,7 @@
         try
         {
             await CaptureFile();
-            ModelDocument.IdDemandeSignature = IdDocumentAdd;
+            ModelDocument.IdDemandeSignature = idDossier;
             var response = await _documentClient.AddEditAsync(ModelDocument);
             if (response.Succeeded)
             {

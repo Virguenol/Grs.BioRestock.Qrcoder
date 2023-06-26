@@ -16,7 +16,7 @@ namespace Grs.BioRestock.Transfer.DataModels.Document
         public string FileUrl { get; set; }
         public string FileUrlsSigne { get; set; }
         public string NomClient { get; set; }
-        public decimal valeur { get; set; }
+        public decimal Valeur { get; set; }
         public string NumberDoc { get; set; }
         public string CodeSignature { get; set; }
         public DateTime DateSignature { get; set; }

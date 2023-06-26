@@ -1,0 +1,134 @@
+﻿@using Grs.BioRestock.Shared.Constants.Application;
+@using Grs.BioRestock.Transfer.DataModels.Demande;
+@using Grs.BioRestock.Transfer.DataModels.Document;
+@using Microsoft.AspNetCore.SignalR.Client;
+@using System.IO;
+
+<EditForm Model="@ModelDossier" OnValidSubmit="SubmitForm">
+    <FluentValidationValidator @ref="_fluentValidationValidator" />
+    <MudDialog>
+        <TitleContent>
+            @{
+                if (ModelDossier.Id == 0)
+                {
+                    <MudText Typo="Typo.h6">
+                        <MudIcon Icon="@Icons.Material.Filled.Add" Class="mr-3 mb-n1" />
+                        Add Document
+                    </MudText>
+                }
+                else
+                {
+                    <MudText Typo="Typo.h6">
+                        <MudIcon Icon="@Icons.Material.Filled.Update" Class="mr-3 mb-n1" />
+                        Update Document
+                    </MudText>
+                }
+            }
+        </TitleContent>
+        <DialogContent>
+            <MudGrid>
+                <MudItem xs="12" md="6">
+                    <MudTextField Disabled For="@(() => ModelDossier.Id)" @bind-Value="ModelDossier.Id" Label="Id" />
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudTextField For="@(() => ModelDossier.Titre)" @bind-Value="ModelDossier.Titre" Label="Dossier" />
+                </MudItem>                          
+            </MudGrid>
+        </DialogContent>
+        <DialogActions>
+            <MudButton Variant="Variant.Filled" OnClick="Cancel">Cancel</MudButton>
+            @if (ModelDossier.Id != 0)
+            {
+                <MudButton Variant="Variant.Filled" ButtonType="ButtonType.Submit" Color="Color.Success">Update</MudButton>
+            }
+            else
+            {
+                <MudButton Variant="Variant.Filled" ButtonType="ButtonType.Submit" Color="Color.Success">Save</MudButton>
+            }
+        </DialogActions>
+    </MudDialog>
+</EditForm>
+
+@code {
+    private bool _loaded;
+    private string _searchString = "";
+    [CascadingParameter] private MudDialogInstance MudDialog { get; set; }
+    [CascadingParameter] private HubConnection HubConnection { get; set; }
+
+    [Inject] private IDemandeClient _demandeClient { get; set; }
+
+    private FluentValidationValidator _fluentValidationValidator;
+
+
+
+    [Parameter]
+    public DemandeSignatureDto demande { get; set; } = new();
+
+    private List<string> errors = new();
+    private List<DemandeSignatureDto> allDossier = new();
+
+    [ParameterAttribute]
+    public DemandeSignatureDto ModelDossier { get; set; } = new();
+
+    [Parameter]
+    public int Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        HubConnection = HubConnection.TryInitialize(_navigationManager);
+        if (HubConnection.State == HubConnectionState.Disconnected)
+        {
+            await HubConnection.StartAsync();
+        }
+        await GetAllDemande();
+    }
+
+    private async Task SubmitForm()
+    {
+        try
+        {
+            var response = await _demandeClient.AddEditAsync(ModelDossier);
+            await GetAllDemande();
+
+            if (response.Succeeded)
+            {
+                _snackBar.Add(response.Messages[0], Severity.Success);
+                await HubConnection.SendAsync(ApplicationConstants.SignalR.SendUpdateDashboard);
+                MudDialog.Close();
+            }
+            else
+            {
+                foreach (var message in response.Messages)
+                {
+                    _snackBar.Add(message, Severity.Error);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            errors.Add($"Error: {ex.Message}");
+        }
+        await HubConnection.SendAsync(ApplicationConstants.SignalR.SendUpdateDashboard);
+    }
+
+    private async Task GetAllDemande()
+    {
+        try
+        {
+            var response = await _demandeClient.GetAllAsync();
+            if (response.Succeeded)
+            {
+                allDossier = response.Data.ToList();
+                _loaded = true;
+            }
+        }
+        catch (Exception)
+        {
+            throw;
+        }
+    }
+    public void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+}

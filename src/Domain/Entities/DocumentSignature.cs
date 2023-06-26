@@ -15,12 +15,13 @@ namespace Grs.BioRestock.Domain.Entities
         public string FileUrl { get; set; }
         public string FileUrlsSigne { get; set; }
         public string NomClient { get; set; }
-        public decimal valeur { get; set; }
+        public decimal Valeur { get; set; }
         public string NumberDoc { get; set; }
         public string CodeSignature { get; set; }
         public DateTime DateSignature { get; set; }
         public DateTime DateEtablissement { get; set; }
         public DateTime DateAnnulation { get; set; }
+        public DateTime CreatedCreation { get; set; }
         public int IdDemandeSignature { get; set; }
         public DemandeStatut demandeStatut { get; set; } = DemandeStatut.Nouveau;
         public virtual DemandeSignature DemandeSignature { get; set; }

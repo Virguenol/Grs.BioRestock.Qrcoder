@@ -1,0 +1,68 @@
+﻿@page "/DemandeSignature/Validation/{valeurCode}"
+@using Grs.BioRestock.Transfer.DataModels.Document;
+@layout MainLayout
+@attribute [AllowAnonymous]
+
+<MudLayout>
+    <MudText Typo="Typo.h4" Class="align-content-center">Vérification du Document</MudText>
+    <div class="d-flex flex-grow-1 gap-4">
+        @if (document.CodeSignature == valeurCode)
+        {
+        <div Class="d-inline-flex pa-4" style="width:50%; height:800px">                
+                <MudSpacer />
+                <br />
+                <embed src="@document.FileUrlsSigne"
+                       width="640"
+                       height="900"
+                       title="Document" />
+        </div>
+        <div Class="d-inline-flex pa-8">
+                <MudText Typo="Typo.subtitle1">
+                    le dcument @valeurCode est vérifier <br />
+                    <MudList>
+                        <MudListItem >
+                            Date de signature : @document.DateSignature
+                        </MudListItem>
+                        <MudListItem >
+                            Numero du Document : @document.NumberDoc
+                        </MudListItem>
+                    </MudList>
+                </MudText>
+
+        </div>
+            }
+            else
+            {
+            <MudText Typo="Typo.h4">le dcument n exiest pas</MudText>
+            }
+    </div>
+</MudLayout>
+@code {
+
+    [Inject] private IDocumentClient _documentClient { get; set; }
+
+    [Parameter] public string valeurCode { get; set; }
+
+    protected DocumentDto document { get; set; } = new();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await VerificationDoc(valeurCode);
+    }
+
+    private async Task VerificationDoc(string id)
+    {
+        try
+        {
+            var raw = await _documentClient.VerifierSingatureAsync(valeurCode);
+            if (raw.Succeeded)
+                document = raw.Data;
+        }
+        catch (Exception)
+        {
+            throw;
+        }
+    }
+
+}

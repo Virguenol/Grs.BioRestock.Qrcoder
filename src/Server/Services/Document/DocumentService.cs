@@ -1,33 +1,22 @@
 ﻿using Grs.BioRestock.Application.Interfaces.Services;
-using Grs.BioRestock.Domain.Entities;
 using Grs.BioRestock.Infrastructure.Contexts;
 using Grs.BioRestock.Server.Services.Demande;
 using Grs.BioRestock.Server.Services.QrCode;
 using Grs.BioRestock.Shared.Enums.Demande;
 using Grs.BioRestock.Shared.Wrapper;
-using Grs.BioRestock.Transfer.DataModels;
-using Grs.BioRestock.Transfer.DataModels.Demande;
 using Grs.BioRestock.Transfer.DataModels.Document;
-using iTextSharp.text.pdf.parser;
+using iTextSharp.text;
 using iTextSharp.text.pdf;
+using iTextSharp.text.pdf.parser;
 using Mapster;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using QRCoder;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Reflection.Metadata;
 using System.Threading.Tasks;
-using ZXing;
-using ZXing.PDF417;
-using ZXing.QrCode.Internal;
-using Microsoft.JSInterop;
-using System.Net.Http;
 
 namespace Grs.BioRestock.Server.Services.Document
 {
@@ -70,6 +59,7 @@ namespace Grs.BioRestock.Server.Services.Document
 
             if (demandeSignature.Id == 0)
             {
+                demandeSignature.NumberDoc = Guid.NewGuid().ToString("N");
                 var document = demandeSignature.Adapt<Domain.Entities.DocumentSignature>();
                 if (uploadRequest != null)
                 {
@@ -79,6 +69,7 @@ namespace Grs.BioRestock.Server.Services.Document
                 document.FileUrl = demandeSignature.FileUrl;
                 document.FileName = demandeSignature?.FileName;
                 document.CreatedOn = DateTime.Now;
+                document.DateEtablissement = DateTime.Now;
                 await _context.DocumentSignatures.AddAsync(document);
                 await _context.SaveChangesAsync();
                 return await Result<string>.SuccessAsync("Document Ajouter");
@@ -146,7 +137,7 @@ namespace Grs.BioRestock.Server.Services.Document
         {
             var code_url = Guid.NewGuid().ToString("N");
             var signed = $"https://localhost:3601/DemandeSignature/Validation/{code_url}";
-            
+
             // Mise en forme du code QR
             BarcodeQRCode qr = new BarcodeQRCode(signed, 70, 70, null);
             var imgQR = qr.GetImage();
@@ -173,10 +164,18 @@ namespace Grs.BioRestock.Server.Services.Document
                     FileStream fs = new FileStream(filePathS, FileMode.Create, FileAccess.Write, FileShare.None);
                     PdfStamper stamper = new PdfStamper(reader, fs);
                     PdfContentByte cb = stamper.GetOverContent(i);
+                    
+                    Phrase phrase = new Phrase(signed);
 
+                    Rectangle pageSize = reader.GetPageSize(i);
+                    float textX = pageSize.Left + 65;
+                    float textY = pageSize.Bottom + 30;
                     // Positionnement du code QR
                     imgQR.SetAbsolutePosition(0, 0);
                     cb.AddImage(imgQR);
+
+
+                    ColumnText.ShowTextAligned(cb, Element.ALIGN_LEFT, phrase, textX, textY, 0);
                     // Enregistrement du fichier modifié
                     stamper.Close();
                 }
@@ -186,7 +185,7 @@ namespace Grs.BioRestock.Server.Services.Document
             document.CodeSignature = code_url;
             document.demandeStatut = DemandeStatut.Signé;
             _context.DocumentSignatures.Update(document);
-            await _context.SaveChangesAsync(); 
+            await _context.SaveChangesAsync();
             return await Result<string>.SuccessAsync("le document a été signé");
         }
 
@@ -209,55 +208,6 @@ namespace Grs.BioRestock.Server.Services.Document
             _context.DocumentSignatures.Update(document);
             await _context.SaveChangesAsync();
             return await Result<string>.SuccessAsync("Document Annulé");
-        }
-
-        //public async Task DownloadPdf(int id)
-        //{
-        //    var folderName = "Files\\Documents\\";
-
-        //    var document = await _context.DocumentSignatures.FirstOrDefaultAsync(x => x.Id == id);
-
-        //    // URL vers le fichier PDF
-        //    var filePath = System.IO.Path.Combine(folderName, document.FileName);
-
-        //    // Créer une instance Http de la bibliothèque HttpClient pour télécharger le fichier
-        //    //using (HttpClient httpClient = new HttpClient())
-        //    //{
-        //    //    // Récupérer le contenu du fichier PDF
-        //    //    byte[] pdfBytes = await httpClient.GetByteArrayAsync(filePath);
-
-        //    //    // Nom du fichier PDF à télécharger
-        //    //    string fileName = "myfile.pdf";
-
-        //    //    // Type MIME pour les fichiers PDF
-        //    //    const string mimeType = "application/pdf";
-
-        //        // Télécharger le fichier en indiquant le nom de fichier et le type MIME
-        //        await JSRuntime.InvokeVoidAsync("saveAsFile", "PdfFileName1", document.FileName);
-
-
-        //    }
-        //}
-        //public async Task<List<DocumentDto>> SearchArticlesAsync(Recherche search)
-        //{
-        //    var query = _context.DocumentSignatures.AsQueryable();
-
-        //    if (!string.IsNullOrEmpty(search.Keyword))
-        //    {
-        //        query = query.Where(a => a.Title.Contains(search.Keyword) || a.FileUrl.Contains(search.Keyword));
-        //    }
-
-        //    if (!string.IsNullOrEmpty(search.))
-        //    {
-        //        query = query.Where(a => a.Category.ToLower() == search.Category.ToLower());
-        //    }
-
-
-
-        //    return await query.ToListAsync();
-        //}
-
-        
-        
+        }   
     }
 }
