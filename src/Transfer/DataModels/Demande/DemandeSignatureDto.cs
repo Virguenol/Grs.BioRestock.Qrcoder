@@ -9,9 +9,12 @@ namespace Grs.BioRestock.Transfer.DataModels.Demande
     public class DemandeSignatureDto
     {
         public int Id { get; set; }
+        public int? DossierParentId { get; set; }
         public string Titre { get; set; }
         public DateTime DateAnnulation { get; set; }
         public DateTime CreatedOn { get; set; }
         public DateTime DateEtablissement { get; set; }
+        public List<DemandeSignatureDto> SousDossiers { get; set; }
+
     }
 }

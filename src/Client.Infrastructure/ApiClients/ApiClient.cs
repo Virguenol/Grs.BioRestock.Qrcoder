@@ -553,12 +553,12 @@ namespace Grs.BioRestock.Client.Infrastructure.ApiClients
 
         /// <returns>Success</returns>
         /// <exception cref="ApiClientException">A server side error occurred.</exception>
-        System.Threading.Tasks.Task<StringResult> AddEditAsync(DemandeSignatureDto? body);
+        System.Threading.Tasks.Task<StringResult> AddEditAsync(int? parentId, DemandeSignatureDto? body);
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>Success</returns>
         /// <exception cref="ApiClientException">A server side error occurred.</exception>
-        System.Threading.Tasks.Task<StringResult> AddEditAsync(DemandeSignatureDto? body, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<StringResult> AddEditAsync(int? parentId, DemandeSignatureDto? body, System.Threading.CancellationToken cancellationToken);
 
         /// <returns>Success</returns>
         /// <exception cref="ApiClientException">A server side error occurred.</exception>
@@ -674,18 +674,23 @@ namespace Grs.BioRestock.Client.Infrastructure.ApiClients
 
         /// <returns>Success</returns>
         /// <exception cref="ApiClientException">A server side error occurred.</exception>
-        public virtual System.Threading.Tasks.Task<StringResult> AddEditAsync(DemandeSignatureDto? body)
+        public virtual System.Threading.Tasks.Task<StringResult> AddEditAsync(int? parentId, DemandeSignatureDto? body)
         {
-            return AddEditAsync(body, System.Threading.CancellationToken.None);
+            return AddEditAsync(parentId, body, System.Threading.CancellationToken.None);
         }
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>Success</returns>
         /// <exception cref="ApiClientException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<StringResult> AddEditAsync(DemandeSignatureDto? body, System.Threading.CancellationToken cancellationToken)
+        public virtual async System.Threading.Tasks.Task<StringResult> AddEditAsync(int? parentId, DemandeSignatureDto? body, System.Threading.CancellationToken cancellationToken)
         {
             var urlBuilder_ = new System.Text.StringBuilder();
-            urlBuilder_.Append("api/Demande/AddEdit");
+            urlBuilder_.Append("api/Demande/AddEdit?");
+            if (parentId != null)
+            {
+                urlBuilder_.Append(System.Uri.EscapeDataString("parentId") + "=").Append(System.Uri.EscapeDataString(ConvertToString(parentId, System.Globalization.CultureInfo.InvariantCulture))).Append("&");
+            }
+            urlBuilder_.Length--;
 
             var client_ = _httpClient;
             var disposeClient_ = false;

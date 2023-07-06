@@ -70,7 +70,7 @@
     [ParameterAttribute]
     public DemandeSignatureDto ModelDossier { get; set; } = new();
 
-    [Parameter]
+    [ParameterAttribute]
     public int Id { get; set; }
 
     protected override async Task OnInitializedAsync()
@@ -87,7 +87,7 @@
     {
         try
         {
-            var response = await _demandeClient.AddEditAsync(ModelDossier);
+            var response = await _demandeClient.AddEditAsync(Id, ModelDossier);
             await GetAllDemande();
 
             if (response.Succeeded)

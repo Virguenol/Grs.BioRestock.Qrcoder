@@ -10,10 +10,12 @@ namespace Grs.BioRestock.Domain.Entities
 {
     public class DemandeSignature : AuditableEntity<int>
     {
-        public string Titre { get; set; }       
+        public string Titre { get; set; }
+        public int? DossierParentId { get; set; }
         public DateTime DateAnnulation { get; set; }
         public DateTime DateEtablissement { get; set; }
-        //public DirectoryInfo Directory { get; set; }
+        public List<DemandeSignature> SousDossiers { get; set; }
+        public DemandeSignature DossierParent { get; set; }
         public List<DocumentSignature> DocumentSignatures { get; set; }
     }
 }

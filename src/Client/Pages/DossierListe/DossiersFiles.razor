@@ -1,0 +1,523 @@
+﻿@page "/DossieListe/liste_dossier/{id}"
+@using Grs.BioRestock.Shared.Enums.Demande;
+@using Grs.BioRestock.Transfer.DataModels.Demande;
+@using Grs.BioRestock.Transfer.DataModels.Document;
+@using System.IO;
+@using Microsoft.AspNetCore.Components.Rendering;
+@using Microsoft.AspNetCore.SignalR.Client;
+@inject IJSRuntime _JSRuntime;
+
+
+<style>
+    .folder_container {
+        background: #F5F5F5;
+        transition: all 0.5s ease-out;
+    }
+
+     .folder_container:hover {
+        background: #BDBDBD;
+     }
+
+    .imageIcon {
+        width: 50px;
+    }
+
+    /*Fichier Style*/
+    .iframeFichier {
+        width: 100%;
+        height: 50%;
+        align-content: center;
+        text-align: center
+    }
+
+    embed {
+        width: 100%;
+    }
+
+    .iframeContenaire {
+        background: #BDBDBD;
+        padding : 10px;
+
+    }
+    .container {
+        position : relative;
+    }
+</style>
+
+
+<MudLayout Class="align-center justify-center">
+    <MudGrid>
+        <MudItem xs="3">
+        </MudItem>
+        <MudItem xs="6" sm="6">
+            <MudTextField @bind-Value="_searchString" Placeholder="Search" Adornment="Adornment.Start" Immediate="true"
+                          AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0">
+            </MudTextField>
+        </MudItem>
+        <MudItem xs="3" sm="6">
+        </MudItem>
+    </MudGrid>
+        <br />
+    <MudCardContent Class="d-flex flex-grow-1">
+        <MudAvatar Rounded="true" Color="Color.Secondary" Class="mr-3">
+            <MudIcon Icon="@Icons.Material.Filled.SubdirectoryArrowLeft" Color="Color.Primary" onclick="@(() => Retour(Convert.ToInt32(id)))" />
+        </MudAvatar>
+        <MudMenu Label="Nouveau" Variant="Variant.Filled" DisableElevation="true" EndIcon="@Icons.Filled.KeyboardArrowDown" IconColor="Color.Secondary">
+            <MudMenuItem Icon="@Icons.Material.Filled.CreateNewFolder" OnClick="@(() => AddDossier(Convert.ToInt32(id)))">Ajouter Dossier</MudMenuItem>
+            <MudMenuItem Icon="@Icons.Material.Filled.FileUpload" OnClick="@(() => AddDocument(Convert.ToInt32(id)))">Ajuter Fichier</MudMenuItem>
+        </MudMenu>
+        <MudSpacer />
+        <MudAvatar Rounded="true" Color="Color.Secondary" Class="mr-3">
+            <MudIcon Icon="@Icons.Material.Filled.Apps" Color="Color.Primary" />
+        </MudAvatar>
+        <MudAvatar Rounded="true" Color="Color.Secondary">
+            <MudSpacer />
+            <MudIcon Icon="@Icons.Material.Filled.FilterList" Color="Color.Primary" />
+        </MudAvatar>
+    </MudCardContent>
+
+    <MudListSubheader Class="mt-4 pb-2">Dossier</MudListSubheader>
+    <MudPaper Class="d-flex align-center justify-center mud-width-full">
+    </MudPaper>
+
+    @*@if (!_loaded)
+    {
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+    }
+    else
+    {*@
+    <MudCardContent>
+        <MudGrid>
+            @foreach (var item in allDocument.Where(d => d.DossierParentId == Convert.ToInt32(id)))
+            {
+                <MudItem xs="3">
+                    <MudCard Class="d-flex align-center justify-center mud-width-full py-1 rounded-lg folder_container cursor-pointer" onclick="@(() => ListeFichier(item.Id))">
+                        <div Class="d-flex flex-column flex-grow-1">
+                            <MudCardActions Class="d-flex justify-end flex-grow-1 gap-0" Elevation="0">
+                                <MudIconButton Icon="@Icons.Material.Filled.Folder" Size="Size.Large" Class="overflow-y-hidden" />
+                                <MudText Typo="Typo.overline">@item.Titre</MudText>
+                                <MudSpacer />
+                                 <MudMenu Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small">
+                                    <MudMenuItem OnClick="@(() => InvokeModal( Convert.ToString(item.Id)))">Modifier</MudMenuItem>
+                                    <MudMenuItem OnClick="@(() => SupprimerDemande(item.Id))">Modifier</MudMenuItem>
+                                 </MudMenu>
+                            </MudCardActions>
+                        </div>
+                    </MudCard>
+                </MudItem>
+            }
+        </MudGrid>
+    </MudCardContent>
+    
+    <MudListSubheader Class="mt-4 pb-2">Fichier</MudListSubheader>
+    <MudCardContent>
+        <MudGrid>
+            @foreach (var item in allFichiers)
+            {
+                <MudItem xs="3">
+                    <MudCard Class="d-flex flex-wrap cursor-pointer iframeContenaire container">
+                        <div class="d-flex flex-grow-1 gap-4">
+                                 <MudIcon Icon="@Icons.Material.Filled.InsertDriveFile" Title="Favorite" /> 
+                                 <MudText Typo="Typo.overline">@item.NomClient</MudText>
+                                 <MudSpacer />
+                               <MudMenu Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small">
+                                <MudMenuItem OnClick="@(() => DownloadFile(@item.Id))">Telecharger Doc non signé</MudMenuItem>
+                                @if (item.demandeStatut == statutSigner)
+                                {
+                                    <MudMenuItem OnClick="@(() => DownloadFileSigne(@item.Id))">Telecharger Doc signé</MudMenuItem>
+                                }
+                                <MudMenuItem OnClick="@(() => VoirFile(item.Id))">Voir</MudMenuItem>
+                                @if (item.demandeStatut == statutNouveau)
+                                {
+                                    <MudMenuItem OnClick="(() => InvokeModal(Convert.ToString(item.Id)))">@Localizer["Modifier"]</MudMenuItem>
+                                }
+                                <MudMenuItem OnClick="@(() => AnnulerDemande(@item.Id))">Annuler</MudMenuItem>
+                                @if (item.demandeStatut != statutSigner)
+                                {
+                                    <MudMenuItem OnClick="@(() => SignerDocument(@item.Id))">Signature</MudMenuItem>
+                                }
+                                </MudMenu>
+                            </div>
+
+                            @*<div class="iframeFichier">
+                                 <embed id="" src="@item.FileUrl" style="height:auto; width:100%;" />
+                            </div>*@
+                    </MudCard>
+                </MudItem>
+            }
+        </MudGrid>
+    </MudCardContent>
+    
+</MudLayout>
+
+
+
+
+@code {
+
+    private bool _loaded;
+    private string _searchString = "";
+
+    private DemandeStatut statutSigner = DemandeStatut.Signé;
+    private DemandeStatut statutAnnuler = DemandeStatut.Annulé;
+    private DemandeStatut statutNouveau = DemandeStatut.Nouveau;
+
+    [CascadingParameter] private HubConnection HubConnection { get; set; }
+
+    [Inject] private IDocumentClient _documentClient { get; set; }
+    [Inject] private IDemandeClient _demandeClient { get; set; }
+
+    [Parameter]
+    public string id { get; set; }
+    [Parameter]
+    public int idParent { get; set; }
+
+
+    protected List<DemandeSignatureDto> allDocument { get; set; } = new();
+    protected DemandeSignatureDto DemandeSignature { get; set; }
+    protected DemandeSignatureDto dossier { get; set; }
+
+    /*Fichiers*/
+    protected DocumentDto fichier { get; set; }
+    protected List<DocumentDto> allFichiers { get; set; } = new();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        _loaded = true;
+        HubConnection = HubConnection.TryInitialize(_navigationManager);
+        if (HubConnection.State == HubConnectionState.Disconnected)
+        {
+            await HubConnection.StartAsync();
+        }
+        await GetAllDemande();
+        await GetAllDemande(Convert.ToInt32(id));
+    }
+
+    private async Task GetAllDemande()
+    {
+        _loaded = true;
+        try
+        {
+            var response = await _demandeClient.GetAllAsync();
+            if (response.Succeeded)
+            {
+                allDocument = response.Data.ToList();
+            }
+        }
+        catch (Exception)
+        {
+            throw;
+        }
+        _loaded = false;
+    }
+
+    private async Task InvokeModal(string id = null)
+    {
+        var parameters = new DialogParameters();
+        if (id != null)
+        {
+            dossier = allDocument.FirstOrDefault(d => d.Id == Convert.ToInt32(id));
+            if (dossier != null)
+            {
+                parameters.Add(nameof(AddEditModalDossier.ModelDossier), new DemandeSignatureDto
+                 {
+                   Id = dossier.Id,
+                   Titre = dossier.Titre,
+                 });
+            }
+        }
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true, DisableBackdropClick = true };
+        var dialog = _dialogService.Show<AddEditModalDossier>(id == null ? Localizer["Create"] : Localizer["Edit"], parameters, options);
+        var result = await dialog.Result;
+        if (!result.Cancelled)
+        {
+            OnSearch("");
+            await GetAllDemande();
+        }
+    }
+
+    private async Task AddDossier(int id)
+    {
+
+        var parameters = new DialogParameters();
+
+        parameters.Add(nameof(AddEditModalDossier.Id), id);
+        var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true };
+        var dialog = _dialogService.Show<AddEditModalDossier>(id == 0 ? Localizer["Create"] : Localizer["Edit"], parameters, options);
+        var result = await dialog.Result;
+        if (!result.Cancelled)
+        {
+            OnSearch("");
+            //await GetAllDemande();
+        }
+    }
+
+    private bool Search(DemandeSignatureDto demande)
+    {
+        if (string.IsNullOrWhiteSpace(_searchString)) return true;
+        if (demande.Titre?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true)
+        {
+            return true;
+        }
+        return false;
+    }
+
+    private void OnSearch(string text)
+    {
+        _searchString = text;
+        //_table.ReloadServerData();
+    }
+
+    private async void ListeFichier(int Id)
+    {
+        await GetAllDemande(Id);
+        _navigationManager.NavigateTo($"/DossieListe/liste_dossier/{Id}");   
+    }
+
+    private  void Retour(int id)
+    {
+        dossier = allDocument.FirstOrDefault(d => d.Id == Convert.ToInt32(id));
+        idParent = Convert.ToInt32(dossier.DossierParentId);
+        if(idParent == 0)
+        {
+            _navigationManager.NavigateTo($"/DossierListe/liste_dossiers");
+        }
+        else
+        {
+            _navigationManager.NavigateTo($"/DossieListe/liste_dossier/{idParent}");
+        }
+
+    }
+
+    public async Task SupprimerDemande(int fichierId)
+    {
+        string deleteContent = Localizer["voulez vous Supprimer"];
+        var parameters = new DialogParameters
+        {
+          { nameof(Shared.Dialogs.DeleteConfirmationDialog.ContentText), string.Format(deleteContent, fichierId) }
+        };
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true, DisableBackdropClick = true };
+        var dialog = _dialogService.Show<Shared.Dialogs.DeleteConfirmationDialog>(Localizer["Delete"], parameters, options);
+        var result = await dialog.Result;
+        if (!result.Cancelled)
+        {
+            var response = await _demandeClient.DeleteAsync(fichierId);
+            if (response == null)
+            {
+                _snackBar.Add(response.Messages[0], Severity.Success);
+                await GetAllDemande();
+            }
+            else
+            {
+                foreach (var message in response.Messages)
+                {
+                    _snackBar.Add(message, Severity.Error);
+                }
+            }
+        }
+    }
+
+    /*Partie des Fichiers*/
+
+    private async Task GetAllDemande(int id)
+    {
+        _loaded = true;
+        try
+        {
+            var response = await _documentClient.GetAllGetAsync(Convert.ToInt32(id));
+            if (response.Succeeded)
+            {
+                allFichiers = response.Data.ToList();
+            }
+        }
+        catch (Exception)
+        {
+            throw;
+        }
+        _loaded = false;
+    }
+
+    private async Task InvokeModalFichier(string id)
+    {
+        var parameters = new DialogParameters();
+        if (id != null)
+        {
+            fichier = allFichiers.FirstOrDefault(d => d.Id == Convert.ToInt32(id));
+            if (fichier != null)
+            {
+                parameters.Add(nameof(AddEditFichierModal.ModelDocument), new DocumentDto
+                    {
+                        Id = fichier.Id,
+                        NomClient = fichier.NomClient,
+                        Designation = fichier.Designation,
+                        Valeur = fichier.Valeur
+                    });
+            }
+        }
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true, DisableBackdropClick = true };
+        var dialog = _dialogService.Show<AddEditFichierModal>(id == null ? Localizer["Create"] : Localizer["Edit"], parameters, options);
+        var result = await dialog.Result;
+        if (!result.Cancelled)
+        {
+            OnSearch("");
+            await GetAllDemande(Convert.ToInt32(id));
+        }
+    }
+
+    private async Task AddDocument(int id)
+    {
+
+        var parameters = new DialogParameters();
+
+        parameters.Add(nameof(AddEditFichierModal.idDossier), id);
+        var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true };
+        var dialog = _dialogService.Show<AddEditFichierModal>(id == 0 ? Localizer["Create"] : Localizer["Edit"], parameters, options);
+        var result = await dialog.Result;
+        if (!result.Cancelled)
+        {
+            OnSearch("");
+            //await GetAllDemande();
+        }
+    }
+
+    public async Task SupprimerDemandeFichier(int demandeSignatureId)
+    {
+        string deleteContent = Localizer["voulez vous Supprimer"];
+        var parameters = new DialogParameters
+        {
+          { nameof(Shared.Dialogs.DeleteConfirmationDialog.ContentText), string.Format(deleteContent, demandeSignatureId) }
+        };
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true, DisableBackdropClick = true };
+        var dialog = _dialogService.Show<Shared.Dialogs.DeleteConfirmationDialog>(Localizer["Delete"], parameters, options);
+        var result = await dialog.Result;
+        if (!result.Cancelled)
+        {
+            var response = await _documentClient.DeleteAsync(demandeSignatureId);
+            if (response == null)
+            {
+                _snackBar.Add(response.Messages[0], Severity.Success);
+            }
+            else
+            {
+                foreach (var message in response.Messages)
+                {
+                    _snackBar.Add(message, Severity.Error);
+                }
+            }
+        }
+    }
+
+    public async Task AnnulerDemande(int fichierId)
+    {
+        string deleteContent = Localizer["voulez vous annuller"];
+        var parameters = new DialogParameters
+            {
+              { nameof(Shared.Dialogs.DeleteConfirmationDialog.ContentText), string.Format(deleteContent, fichierId) }
+            };
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true, DisableBackdropClick = true };
+        var dialog = _dialogService.Show<Shared.Dialogs.DeleteConfirmationDialog>(Localizer["Delete"], parameters, options);
+        var result = await dialog.Result;
+        if (!result.Cancelled)
+        {
+            var response = await _documentClient.AnnuleDemandeAsync(fichierId);
+            if (response == null)
+            {
+                _snackBar.Add(response.Messages[0], Severity.Success);
+            }
+            else
+            {
+                foreach (var message in response.Messages)
+                {
+                    _snackBar.Add(message, Severity.Error);
+                }
+            }
+        }
+    }
+
+    private bool Search(DocumentDto demande)
+    {
+        if (string.IsNullOrWhiteSpace(_searchString)) return true;
+        if (demande.Designation?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true)
+        {
+            return true;
+        }
+        if (demande.FileName?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true)
+        {
+            return true;
+        }
+        return false;
+    }
+
+    public async Task SignerDocument(int demandeSignatureId)
+    {
+        string updateContent = Localizer["Voulez-vous Signer?"];
+        var parameters = new DialogParameters
+        {
+          { nameof(Shared.Dialogs.ConfirmationDialog.ContentText), string.Format(updateContent) }
+        };
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true, DisableBackdropClick = true };
+        var dialog = _dialogService.Show<Shared.Dialogs.ConfirmationDialog>(Localizer["Aoujer"], parameters, options);
+        var result = await dialog.Result;
+        if (!result.Cancelled)
+        {
+            var response = await _documentClient.SignerDocumentAsync(demandeSignatureId);
+            if (response == null)
+            {
+                _snackBar.Add(response.Messages[0], Severity.Success);
+                await GetAllDemande(Convert.ToInt32(id));
+            }
+            else
+            {
+                foreach (var message in response.Messages)
+                {
+                    _snackBar.Add(message, Severity.Error);
+                }
+            }
+        }
+    }
+
+
+    private async Task DownloadFile(int id)
+    {
+        var document = allFichiers.FirstOrDefault(d => d.Id == id);
+        var fileName = "NomFile.pdf";
+        var fileURL = document.FileUrl;
+        await _JSRuntime.InvokeVoidAsync("triggerFileDownload", fileName, fileURL);
+    }
+
+    private async Task DownloadFileSigne(int id)
+    {
+        var document = allFichiers.FirstOrDefault(d => d.Id == id);
+        var fileName = "NomFileSigne.pdf";
+        var fileURL = document.FileUrlsSigne;
+        await _JSRuntime.InvokeVoidAsync("triggerFileDownload", fileName, fileURL);
+    }
+
+    public void OpenPDF(int IdFile)
+    {
+        var document = allFichiers.FirstOrDefault(d => d.Id == IdFile);
+        string filePath = document.FileUrl;
+        ((IJSRuntime)_JSRuntime).InvokeAsync<object>("openPDF", filePath);
+    }
+
+    private async Task VoirFile(int id)
+    {
+        var parameters = new DialogParameters();
+        parameters.Add(nameof(ViewFichier.IdFile), id);
+        var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true };
+        var dialog = _dialogService.Show<ViewFichier>(id == 0 ? Localizer["Create"] : Localizer["Voir le fichier"], parameters, options);
+        var result = await dialog.Result;
+        if (!result.Cancelled)
+        {
+            OnSearch("");
+            //await GetAllDemande();
+        }
+    }
+
+    //private void Retour()
+    //{
+    //    _navigationManager.NavigateTo($"/DossierListe/liste_dossiers");
+    //}
+}
+

@@ -12,21 +12,16 @@
 	</MudNavLink>
 	
  
-			<MudListSubheader Class="py-1 px-2 my-1">@Localizer["Animation"]</MudListSubheader>
+	@*		<MudListSubheader Class="py-1 px-2 my-1">@Localizer["Animation"]</MudListSubheader>
 
 	<MudNavLink Style="border-left:6px solid #b955c7" Href="/Session">
 			@Localizer["Animations"]
-
-		</MudNavLink>
+	</MudNavLink>*@
 		
 	 
 	<MudListSubheader Class="py-1 px-2 my-1">@Localizer["Personal"]</MudListSubheader>
 	<MudNavLink Href="/account" Icon="@Icons.Material.Outlined.SupervisorAccount">
 		@Localizer["Mon compte"]
-	</MudNavLink>
-	<MudListSubheader Class="py-1 px-2 my-1">@Localizer["Gestion bon de retour"]</MudListSubheader>
-	<MudNavLink Href="/BonDeRetour/user_bonderetour" Icon="@Icons.Material.Outlined.SupervisorAccount">
-		@Localizer["Bon de retour"]
 	</MudNavLink>
 
 	@if (_canViewUsers || _canViewRoles)
@@ -45,9 +40,9 @@
 		}
 		@if (_canViewUsers)
 		{
-			<MudNavLink Href="/Demande/liste_demande" Icon="@Icons.Material.Outlined.Book">
+			@*<MudNavLink Href="/Demande/liste_demande" Icon="@Icons.Material.Outlined.Book">
 				@Localizer["Demande"]
-			</MudNavLink>
+			</MudNavLink>*@
 
 			<MudNavLink Href="/DossierListe/liste_dossiers" Icon="@Icons.Material.Outlined.Book">
 				@Localizer["Document"]
@@ -59,7 +54,7 @@
 	@if (_canViewHangfire || _canViewSwagger)
 	{
 		<MudListSubheader Class="py-1 px-2 my-1">@Localizer["Infrastructure"]</MudListSubheader>
-		@if (_canViewHangfire)
+		@*@if (_canViewHangfire)
 		{
 			<MudNavLink Href="/job-viewer" Icon="@Icons.Material.Outlined.Work">
 				@Localizer["Job Viewer"]
@@ -70,7 +65,7 @@
 			<MudNavLink Href="/swagger-viewer"  Icon="@Icons.Material.Outlined.LiveHelp">
 				@Localizer["Swagger"]
 			</MudNavLink>
-		}
+		}*@
 		@if (_canViewAuditTrails)
 		{
 			<MudNavLink Href="/audit-trails" Icon="@Icons.Material.Outlined.Security">

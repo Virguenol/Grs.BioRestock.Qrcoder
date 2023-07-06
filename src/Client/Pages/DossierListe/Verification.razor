@@ -1,30 +1,41 @@
 ﻿@page "/Validation_document/{valeurCode}"
 @using Grs.BioRestock.Transfer.DataModels.Document;
+@using Grs.BioRestock.Transfer.Requests.Identity;
 @layout MainLayout
 @attribute [AllowAnonymous]
 
-<MudLayout>
-    <MudText Typo="Typo.h4" Class="align-content-center">Vérification du Document</MudText>
-    <div class="d-flex flex-grow-1 gap-4">
+<style>
+    .container{
+        padding-top: 25%;
+    }
+
+    .titre {
+        text-align : center;
+        padding-top: 50px;
+        padding-bottom: 30px;
+    }
+</style>
+<MudLayout Class="">
+    <MudText Typo="Typo.h4" Class="titre">Vérification du Document</MudText>
+    <div class="d-flex flex-grow-1 gap-1">
         @if (document.CodeSignature == valeurCode)
         {
-        <div Class="d-inline-flex pa-4" style="width:50%; height:800px">                
+        <div Class="d-inline-flex pa-4" style="width:50%; height:400px">                
                 <MudSpacer />
                 <br />
                 <embed src="@document.FileUrlsSigne"
-                       width="640"
-                       height="900"
+             
                        title="Document" />
         </div>
-        <div Class="d-inline-flex pa-8">
-                <MudText Typo="Typo.subtitle1">
+        <div Class="d-inline-flex pa-4">
+                <MudText Typo="Typo.subtitle1" Class="container">
                     le dcument @valeurCode est vérifier <br />
-                    <MudList>
+                    <MudList Class="align-content-center">
                         <MudListItem >
-                            Date de signature : @document.DateSignature
+                            Date de signature : @document.DateSignature.ToString("dd/MM/yyyy")
                         </MudListItem>
                         <MudListItem >
-                            Numero du Document : @document.NumberDoc
+                            Signé par : @_profileModel.FirstName @_profileModel.LastName
                         </MudListItem>
                     </MudList>
                 </MudText>
@@ -44,11 +55,14 @@
     [Parameter] public string valeurCode { get; set; }
 
     protected DocumentDto document { get; set; } = new();
+    private readonly UpdateProfileRequest _profileModel = new();
+
 
 
     protected override async Task OnInitializedAsync()
     {
         await VerificationDoc(valeurCode);
+        await LoadDataAsync();
     }
 
     private async Task VerificationDoc(string id)
@@ -65,4 +79,13 @@
         }
     }
 
+    private async Task LoadDataAsync()
+    {
+        var state = await _stateProvider.GetAuthenticationStateAsync();
+        var user = state.User;
+        _profileModel.Email = user.GetEmail();
+        _profileModel.FirstName = user.GetFirstName();
+        _profileModel.LastName = user.GetLastName();
+        _profileModel.PhoneNumber = user.GetPhoneNumber();  
+    }
 }

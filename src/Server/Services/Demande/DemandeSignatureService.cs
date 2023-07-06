@@ -1,4 +1,5 @@
 ﻿using Grs.BioRestock.Application.Interfaces.Services;
+using Grs.BioRestock.Domain.Entities;
 using Grs.BioRestock.Infrastructure.Contexts;
 using Grs.BioRestock.Shared.Enums.Demande;
 using Grs.BioRestock.Shared.Wrapper;
@@ -18,7 +19,7 @@ namespace Grs.BioRestock.Server.Services.Demande
     public interface IDemandeSignatureService
     {
         Task<Result<List<DemandeSignatureDto>>> GetDemandeSignature();
-        Task<Result<string>> AddDemandeSignature(DemandeSignatureDto request);
+        Task<Result<string>> AddDemandeSignature(DemandeSignatureDto request, int? parentId = null);
         Task<Result<string>> DeleteDemandeSignature(int id);
     }
     public class DemandeSignatureService : IDemandeSignatureService
@@ -35,14 +36,36 @@ namespace Grs.BioRestock.Server.Services.Demande
             _context = context;
         }
 
-        public async Task<Result<string>> AddDemandeSignature(DemandeSignatureDto request)
+        public async Task<Result<string>> AddDemandeSignature(DemandeSignatureDto request, int? parentId = null)
         {
             if (request.Id == 0)
             {
-                var demande = request.Adapt<Domain.Entities.DemandeSignature>();
-                demande.CreatedOn = DateTime.Now;
-                await _context.DemandeSignatures.AddAsync(demande);
+                if(parentId.HasValue)
+                {
+                    var parentDossier = request.Adapt<DemandeSignature>();
+                    parentDossier.DossierParentId = parentId.Value;
+                    //parentDossier = await _context.DemandeSignatures.FindAsync(parentId.Value);
+                    //if (parentDossier == null)
+                    //{
+                    //    return await Result<string>.FailAsync("Dossier parent introuvable");
+                    //}
+                    //var Valeur = request.Adapt<DemandeSignature>();
+                    //parentDossier.SousDossiers.Add(parentDossier);
+                    await _context.DemandeSignatures.AddAsync(parentDossier);
+                }
+                else
+                {
+                    var demande = request.Adapt<DemandeSignature>();
+                    demande.CreatedOn = DateTime.Now;
+                    await _context.DemandeSignatures.AddAsync(demande);
+                    
+                }
                 await _context.SaveChangesAsync();
+
+                //foreach (var sousDossier in request.Adapt<Domain.Entities.DemandeSignature>().SousDossiers)
+                //{
+                //    await AddDemandeSignature(sousDossier.Adapt<DemandeSignatureDto>(), request.Id);
+                //}
                 return await Result<string>.SuccessAsync("la demande a été céer");
             }
             else

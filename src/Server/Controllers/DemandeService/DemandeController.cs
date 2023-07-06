@@ -23,9 +23,9 @@ namespace Grs.BioRestock.Server.Controllers.DemandeService
             return await _demande.GetDemandeSignature();
         }
         [HttpPost(nameof(AddEdit))]
-        public async Task<Result<string>> AddEdit(DemandeSignatureDto request)
+        public async Task<Result<string>> AddEdit(DemandeSignatureDto request, int? parentId = null)
         {
-            return await _demande.AddDemandeSignature(request);
+            return await _demande.AddDemandeSignature(request, parentId);
         }
        
         [HttpDelete(nameof(Delete) + "/{id}")]

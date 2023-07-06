@@ -3,7 +3,7 @@
     public static class ApplicationConstants
     {
         public static string AppVersion = "v0.0.0";
-        public static string AppName = "BioRestock";
+        public static string AppName = "InDrive";
 
         public static class SignalR
         {
