@@ -39,6 +39,7 @@ namespace Grs.BioRestock.Infrastructure.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Titre = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    DossierParentId = table.Column<int>(type: "int", nullable: true),
                     DateAnnulation = table.Column<DateTime>(type: "datetime2", nullable: false),
                     DateEtablissement = table.Column<DateTime>(type: "datetime2", nullable: false),
                     CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -49,6 +50,11 @@ namespace Grs.BioRestock.Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_DemandeSignature", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_DemandeSignature_DemandeSignature_DossierParentId",
+                        column: x => x.DossierParentId,
+                        principalTable: "DemandeSignature",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -120,6 +126,8 @@ namespace Grs.BioRestock.Infrastructure.Migrations
                     FileUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     FileUrlsSigne = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     NomClient = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    NomSignateur = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PrenomSignateur = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Valeur = table.Column<decimal>(type: "decimal(28,8)", nullable: false),
                     NumberDoc = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     CodeSignature = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -267,6 +275,11 @@ namespace Grs.BioRestock.Infrastructure.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DemandeSignature_DossierParentId",
+                table: "DemandeSignature",
+                column: "DossierParentId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_DocumentSignature_DemandeSignatureId",

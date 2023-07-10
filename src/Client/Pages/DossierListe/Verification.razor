@@ -4,6 +4,9 @@
 @layout MainLayout
 @attribute [AllowAnonymous]
 
+
+
+
 <style>
     .container{
         padding-top: 25%;
@@ -15,7 +18,14 @@
         padding-bottom: 30px;
     }
 </style>
+
 <MudLayout Class="">
+    <MudPaper Elevation="25">
+        <MudToolBar>
+
+        </MudToolBar>
+    </MudPaper>
+
     <MudText Typo="Typo.h4" Class="titre">Vérification du Document</MudText>
     <div class="d-flex flex-grow-1 gap-1">
         @if (document.CodeSignature == valeurCode)
@@ -35,7 +45,7 @@
                             Date de signature : @document.DateSignature.ToString("dd/MM/yyyy")
                         </MudListItem>
                         <MudListItem >
-                            Signé par : @_profileModel.FirstName @_profileModel.LastName
+                            Signé par : @document.NomSignateur @document.PrenomSignateur
                         </MudListItem>
                     </MudList>
                 </MudText>
@@ -83,9 +93,7 @@
     {
         var state = await _stateProvider.GetAuthenticationStateAsync();
         var user = state.User;
-        _profileModel.Email = user.GetEmail();
         _profileModel.FirstName = user.GetFirstName();
         _profileModel.LastName = user.GetLastName();
-        _profileModel.PhoneNumber = user.GetPhoneNumber();  
     }
 }

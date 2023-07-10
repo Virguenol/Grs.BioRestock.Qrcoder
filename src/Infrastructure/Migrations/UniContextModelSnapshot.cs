@@ -117,7 +117,13 @@ namespace Grs.BioRestock.Infrastructure.Migrations
                     b.Property<string>("NomClient")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("NomSignateur")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("NumberDoc")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PrenomSignateur")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("Valeur")

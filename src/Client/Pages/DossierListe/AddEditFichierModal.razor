@@ -1,6 +1,7 @@
 ﻿@using Grs.BioRestock.Shared.Constants.Application;
 @using Grs.BioRestock.Transfer.DataModels.Document;
 @using System.IO;
+@using Grs.BioRestock.Transfer.Requests.Identity;
 @using Microsoft.AspNetCore.SignalR.Client;
 
 <EditForm Model="@ModelDocument" OnValidSubmit="SubmitForm">
@@ -110,6 +111,8 @@
     private List<string> errors = new();
     private FluentValidationValidator _fluentValidationValidator;
 
+    private readonly UpdateProfileRequest _profileModel = new();
+
 
 
     private IBrowserFile _file;
@@ -191,6 +194,17 @@
             }
         }
     }
+
+    private async Task LoadDataAsync()
+    {
+        var state = await _stateProvider.GetAuthenticationStateAsync();
+        var user = state.User;
+        _profileModel.Email = user.GetEmail();
+        _profileModel.FirstName = user.GetFirstName();
+        _profileModel.LastName = user.GetLastName();
+        _profileModel.PhoneNumber = user.GetPhoneNumber();
+    }
+
     public void Cancel()
     {
         MudDialog.Cancel();

@@ -1,4 +1,4 @@
-﻿@page "/DossieListe/liste_dossier/{id}"
+﻿@page "/DossieListe/liste_dossiers/{id}"
 @using Grs.BioRestock.Shared.Enums.Demande;
 @using Grs.BioRestock.Transfer.DataModels.Demande;
 @using Grs.BioRestock.Transfer.DataModels.Document;
@@ -58,7 +58,7 @@
         </MudItem>
     </MudGrid>
         <br />
-    <MudCardContent Class="d-flex flex-grow-1">
+    <MudCardContent Class="d-flex justify-space-around flex-grow-1 gap-4">
         <MudAvatar Rounded="true" Color="Color.Secondary" Class="mr-3">
             <MudIcon Icon="@Icons.Material.Filled.SubdirectoryArrowLeft" Color="Color.Primary" onclick="@(() => Retour(Convert.ToInt32(id)))" />
         </MudAvatar>
@@ -67,31 +67,28 @@
             <MudMenuItem Icon="@Icons.Material.Filled.FileUpload" OnClick="@(() => AddDocument(Convert.ToInt32(id)))">Ajuter Fichier</MudMenuItem>
         </MudMenu>
         <MudSpacer />
-        <MudAvatar Rounded="true" Color="Color.Secondary" Class="mr-3">
-            <MudIcon Icon="@Icons.Material.Filled.Apps" Color="Color.Primary" />
-        </MudAvatar>
-        <MudAvatar Rounded="true" Color="Color.Secondary">
-            <MudSpacer />
-            <MudIcon Icon="@Icons.Material.Filled.FilterList" Color="Color.Primary" />
-        </MudAvatar>
+        @if(affichage == true)
+        {
+            <MudButton Variant="Variant.Filled" OnClick="@(() => AffichageCol())">
+                <MudIcon Icon="@Icons.Material.Filled.FilterList" Color="Color.Primary" />
+            </MudButton>
+        }
+        else
+        {
+             <MudButton Variant="Variant.Filled" OnClick="@(() => AffichageList())">
+                <MudIcon Icon="@Icons.Material.Filled.Apps" Color="Color.Primary" />
+             </MudButton>
+        } 
     </MudCardContent>
 
+   
     <MudListSubheader Class="mt-4 pb-2">Dossier</MudListSubheader>
-    <MudPaper Class="d-flex align-center justify-center mud-width-full">
-    </MudPaper>
-
-    @*@if (!_loaded)
-    {
-        <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
-    }
-    else
-    {*@
     <MudCardContent>
         <MudGrid>
             @foreach (var item in allDocument.Where(d => d.DossierParentId == Convert.ToInt32(id)))
             {
-                <MudItem xs="3">
-                    <MudCard Class="d-flex align-center justify-center mud-width-full py-1 rounded-lg folder_container cursor-pointer" onclick="@(() => ListeFichier(item.Id))">
+                <MudItem xs="@xs">
+                    <MudCard Class="@liste" onclick="@(() => ListeFichier(item.Id))">
                         <div Class="d-flex flex-column flex-grow-1">
                             <MudCardActions Class="d-flex justify-end flex-grow-1 gap-0" Elevation="0">
                                 <MudIconButton Icon="@Icons.Material.Filled.Folder" Size="Size.Large" Class="overflow-y-hidden" />
@@ -99,7 +96,7 @@
                                 <MudSpacer />
                                  <MudMenu Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small">
                                     <MudMenuItem OnClick="@(() => InvokeModal( Convert.ToString(item.Id)))">Modifier</MudMenuItem>
-                                    <MudMenuItem OnClick="@(() => SupprimerDemande(item.Id))">Modifier</MudMenuItem>
+                                    <MudMenuItem OnClick="@(() => SupprimerDemande(item.Id))">Supprimer</MudMenuItem>
                                  </MudMenu>
                             </MudCardActions>
                         </div>
@@ -107,14 +104,14 @@
                 </MudItem>
             }
         </MudGrid>
-    </MudCardContent>
-    
+    </MudCardContent>  
+
     <MudListSubheader Class="mt-4 pb-2">Fichier</MudListSubheader>
     <MudCardContent>
         <MudGrid>
             @foreach (var item in allFichiers)
             {
-                <MudItem xs="3">
+                <MudItem xs="@xs">
                     <MudCard Class="d-flex flex-wrap cursor-pointer iframeContenaire container">
                         <div class="d-flex flex-grow-1 gap-4">
                                  <MudIcon Icon="@Icons.Material.Filled.InsertDriveFile" Title="Favorite" /> 
@@ -138,10 +135,6 @@
                                 }
                                 </MudMenu>
                             </div>
-
-                            @*<div class="iframeFichier">
-                                 <embed id="" src="@item.FileUrl" style="height:auto; width:100%;" />
-                            </div>*@
                     </MudCard>
                 </MudItem>
             }
@@ -154,7 +147,9 @@
 
 
 @code {
-
+    private string liste;
+    private int xs;
+    private bool affichage;
     private bool _loaded;
     private string _searchString = "";
 
@@ -184,7 +179,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _loaded = true;
+        //affichage = false;
         HubConnection = HubConnection.TryInitialize(_navigationManager);
         if (HubConnection.State == HubConnectionState.Disconnected)
         {
@@ -192,11 +187,12 @@
         }
         await GetAllDemande();
         await GetAllDemande(Convert.ToInt32(id));
+        await AffichageList();
     }
 
     private async Task GetAllDemande()
     {
-        _loaded = true;
+        _loaded = false;
         try
         {
             var response = await _demandeClient.GetAllAsync();
@@ -237,6 +233,20 @@
         }
     }
 
+    private async Task  AffichageList()
+    {
+        affichage = true;
+        xs = 3;
+        liste = "d-flex align-center justify-center mud-width-full py-1 rounded-lg folder_container cursor-pointer";
+    }
+    private void AffichageCol()
+    {
+        affichage = false;
+        xs = 12;
+        liste = "d-flex flex-column flex-grow-1 folder_container cursor-pointer";
+
+    }
+
     private async Task AddDossier(int id)
     {
 
@@ -272,21 +282,19 @@
     private async void ListeFichier(int Id)
     {
         await GetAllDemande(Id);
-        _navigationManager.NavigateTo($"/DossieListe/liste_dossier/{Id}");   
+        _navigationManager.NavigateTo(String.Format(Constants.PAGE_FILES, Id));   
     }
 
-    private  void Retour(int id)
+    private async void Retour(int id)
     {
         dossier = allDocument.FirstOrDefault(d => d.Id == Convert.ToInt32(id));
         idParent = Convert.ToInt32(dossier.DossierParentId);
-        if(idParent == 0)
-        {
-            _navigationManager.NavigateTo($"/DossierListe/liste_dossiers");
-        }
-        else
-        {
-            _navigationManager.NavigateTo($"/DossieListe/liste_dossier/{idParent}");
-        }
+
+        var url = idParent == 0 ? string.Empty : $"/{idParent}";
+        _navigationManager.NavigateTo(String.Format(Constants.PAGE_FILES, url));
+
+        //await GetAllDemande(Convert.ToInt32(id));
+        await GetAllDemande(idParent);
 
     }
 
@@ -329,6 +337,7 @@
             if (response.Succeeded)
             {
                 allFichiers = response.Data.ToList();
+                StateHasChanged();
             }
         }
         catch (Exception)
@@ -452,6 +461,7 @@
     public async Task SignerDocument(int demandeSignatureId)
     {
         string updateContent = Localizer["Voulez-vous Signer?"];
+
         var parameters = new DialogParameters
         {
           { nameof(Shared.Dialogs.ConfirmationDialog.ContentText), string.Format(updateContent) }
@@ -461,7 +471,12 @@
         var result = await dialog.Result;
         if (!result.Cancelled)
         {
-            var response = await _documentClient.SignerDocumentAsync(demandeSignatureId);
+            var state = await _stateProvider.GetAuthenticationStateAsync();
+            var user = state.User;
+            string nom = user.GetFirstName();
+            string prenom = user.GetLastName();
+
+            var response = await _documentClient.SignerDocumentAsync(demandeSignatureId, nom, prenom);
             if (response == null)
             {
                 _snackBar.Add(response.Messages[0], Severity.Success);
@@ -515,9 +530,5 @@
         }
     }
 
-    //private void Retour()
-    //{
-    //    _navigationManager.NavigateTo($"/DossierListe/liste_dossiers");
-    //}
 }
 

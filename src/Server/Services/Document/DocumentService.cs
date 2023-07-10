@@ -1,4 +1,5 @@
 ﻿using Grs.BioRestock.Application.Interfaces.Services;
+using Grs.BioRestock.Client.Infrastructure.Authentication;
 using Grs.BioRestock.Infrastructure.Contexts;
 using Grs.BioRestock.Server.Services.Demande;
 using Grs.BioRestock.Server.Services.QrCode;
@@ -28,7 +29,7 @@ namespace Grs.BioRestock.Server.Services.Document
         Task<Result<DocumentDto>> VerifierSingature(string valeurCode);
         Task<Result<DocumentDto>> GetByIdDocument(int id);
         Task<Result<string>> DeleteDocument(int id);
-        Task<Result<string>> SignerDemande(int id);
+        Task<Result<string>> SignerDemande(int id, string nom, string prenom);
         Task<Result<string>> AnnuleDemande(int id);
     }
     public class DocumentService : IDocumentService
@@ -133,7 +134,7 @@ namespace Grs.BioRestock.Server.Services.Document
             return await Result<List<DocumentDto>>.SuccessAsync(demandeResponse);
         }
 
-        public async Task<Result<string>> SignerDemande(int id)
+        public async Task<Result<string>> SignerDemande(int id, string nom, string prenom)
         {
             var code_url = Guid.NewGuid().ToString("N");
             var signed = $"https://localhost:3601/Validation_document/{code_url}";
@@ -180,6 +181,8 @@ namespace Grs.BioRestock.Server.Services.Document
                     stamper.Close();
                 }
             }
+            document.NomSignateur = nom;
+            document.PrenomSignateur = prenom;
             document.FileUrlsSigne = filePathS;
             document.DateSignature = DateTime.Now;
             document.CodeSignature = code_url;
@@ -208,6 +211,9 @@ namespace Grs.BioRestock.Server.Services.Document
             _context.DocumentSignatures.Update(document);
             await _context.SaveChangesAsync();
             return await Result<string>.SuccessAsync("Document Annulé");
-        }   
+        }
+
     }
+
+
 }

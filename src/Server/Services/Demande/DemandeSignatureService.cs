@@ -40,7 +40,7 @@ namespace Grs.BioRestock.Server.Services.Demande
         {
             if (request.Id == 0)
             {
-                if(parentId.HasValue)
+                if(parentId != 0)
                 {
                     var parentDossier = request.Adapt<DemandeSignature>();
                     parentDossier.DossierParentId = parentId.Value;

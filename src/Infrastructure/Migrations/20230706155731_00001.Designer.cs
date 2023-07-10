@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Grs.BioRestock.Infrastructure.Migrations
 {
     [DbContext(typeof(UniContext))]
-    [Migration("20230628015813_00002")]
-    partial class _00002
+    [Migration("20230706155731_00001")]
+    partial class _00001
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -119,7 +119,13 @@ namespace Grs.BioRestock.Infrastructure.Migrations
                     b.Property<string>("NomClient")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("NomSignateur")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("NumberDoc")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PrenomSignateur")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("Valeur")

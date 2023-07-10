@@ -986,12 +986,12 @@ namespace Grs.BioRestock.Client.Infrastructure.ApiClients
 
         /// <returns>Success</returns>
         /// <exception cref="ApiClientException">A server side error occurred.</exception>
-        System.Threading.Tasks.Task<StringResult> SignerDocumentAsync(int id);
+        System.Threading.Tasks.Task<StringResult> SignerDocumentAsync(int id, string? nom, string? prenom);
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>Success</returns>
         /// <exception cref="ApiClientException">A server side error occurred.</exception>
-        System.Threading.Tasks.Task<StringResult> SignerDocumentAsync(int id, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<StringResult> SignerDocumentAsync(int id, string? nom, string? prenom, System.Threading.CancellationToken cancellationToken);
 
         /// <returns>Success</returns>
         /// <exception cref="ApiClientException">A server side error occurred.</exception>
@@ -1428,22 +1428,31 @@ namespace Grs.BioRestock.Client.Infrastructure.ApiClients
 
         /// <returns>Success</returns>
         /// <exception cref="ApiClientException">A server side error occurred.</exception>
-        public virtual System.Threading.Tasks.Task<StringResult> SignerDocumentAsync(int id)
+        public virtual System.Threading.Tasks.Task<StringResult> SignerDocumentAsync(int id, string? nom, string? prenom)
         {
-            return SignerDocumentAsync(id, System.Threading.CancellationToken.None);
+            return SignerDocumentAsync(id, nom, prenom, System.Threading.CancellationToken.None);
         }
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>Success</returns>
         /// <exception cref="ApiClientException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<StringResult> SignerDocumentAsync(int id, System.Threading.CancellationToken cancellationToken)
+        public virtual async System.Threading.Tasks.Task<StringResult> SignerDocumentAsync(int id, string? nom, string? prenom, System.Threading.CancellationToken cancellationToken)
         {
             if (id == null)
                 throw new System.ArgumentNullException("id");
 
             var urlBuilder_ = new System.Text.StringBuilder();
-            urlBuilder_.Append("api/Document/SignerDocument/{id}");
+            urlBuilder_.Append("api/Document/SignerDocument/{id}?");
             urlBuilder_.Replace("{id}", System.Uri.EscapeDataString(ConvertToString(id, System.Globalization.CultureInfo.InvariantCulture)));
+            if (nom != null)
+            {
+                urlBuilder_.Append(System.Uri.EscapeDataString("nom") + "=").Append(System.Uri.EscapeDataString(ConvertToString(nom, System.Globalization.CultureInfo.InvariantCulture))).Append("&");
+            }
+            if (prenom != null)
+            {
+                urlBuilder_.Append(System.Uri.EscapeDataString("prenom") + "=").Append(System.Uri.EscapeDataString(ConvertToString(prenom, System.Globalization.CultureInfo.InvariantCulture))).Append("&");
+            }
+            urlBuilder_.Length--;
 
             var client_ = _httpClient;
             var disposeClient_ = false;

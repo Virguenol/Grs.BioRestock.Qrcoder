@@ -9,7 +9,9 @@
 <MudTable Items="@allDocument.Where(c => c.demandeStatut != statutAnnuler)" Filter="new Func<DocumentDto, bool>(Search)" @bind-role="document" Hover="true" Breakpoint="Breakpoint.Sm" Loading="@_loaded" LoadingProgressColor="Color.Info">
     <ToolBarContent>
         <MudButton Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.KeyboardReturn" OnClick="@(() => Retour())" Color="Color.Primary" Style="margin-right:10px;"></MudButton>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => AddDocument(Convert.ToInt32(id)))">Ajouter</MudButton>
+        <MudMenu Label="Nouveau" Variant="Variant.Filled" DisableElevation="true" EndIcon="@Icons.Filled.KeyboardArrowDown" IconColor="Color.Secondary">
+            <MudMenuItem Icon="@Icons.Material.Filled.CreateNewFolder" OnClick="@(() => AddDocument(Convert.ToInt32(id)))">Ajouter Dossier</MudMenuItem>
+        </MudMenu>
         <MudSpacer />
         <MudTextField @bind-Value="_searchString" Immediate="true" Placeholder="@Localizer["Rechercher des demande..."]" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0 mb-3" Style="width:100%; align-items:center;"></MudTextField>
     </ToolBarContent>
@@ -233,7 +235,11 @@
         var result = await dialog.Result;
         if (!result.Cancelled)
         {
-            var response = await _documentClient.SignerDocumentAsync(demandeSignatureId);
+            var state = await _stateProvider.GetAuthenticationStateAsync();
+            var user = state.User;
+            string nom = user.GetFirstName();
+            string prenom = user.GetLastName();
+            var response = await _documentClient.SignerDocumentAsync(demandeSignatureId, nom, prenom);
             if (response == null)
             {
                 _snackBar.Add(response.Messages[0], Severity.Success);

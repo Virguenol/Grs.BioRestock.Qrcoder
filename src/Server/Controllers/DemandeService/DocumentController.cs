@@ -50,9 +50,9 @@ namespace Grs.BioRestock.Server.Controllers.DemandeService
         }
 
         [HttpPost(nameof(SignerDocument) + "/{id}")]
-        public async Task<Result<string>> SignerDocument(int id)
+        public async Task<Result<string>> SignerDocument(int id, string nom, string prenom)
         {
-            return await _documentService.SignerDemande(id);
+            return await _documentService.SignerDemande(id, nom, prenom);
         }
 
         [HttpGet(nameof(VerifierSingature) + "/{valeurCode}")]
