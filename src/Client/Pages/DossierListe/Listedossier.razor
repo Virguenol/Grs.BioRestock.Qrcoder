@@ -21,14 +21,33 @@
 </style>
 
 <MudLayout Class="align-center justify-center">
+    <MudGrid>
+        <MudItem xs="3">
+        </MudItem>
+        <MudItem xs="6" sm="6">
+            <MudTextField @bind-Value="_searchString" Placeholder="Search" Adornment="Adornment.Start" Immediate="true"
+                          AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+        </MudItem>
+        <MudItem xs="3" sm="6">
+        </MudItem>
+    </MudGrid>
     <MudCardContent Class="d-flex flex-grow-1">
-@*        <MudIconButton Icon="@Icons.Material.Filled.CreateNewFolder" OnClick="@(() => InvokeModal(null))" />
-*@        <MudMenu Label="Nouveau" Variant="Variant.Filled" DisableElevation="true" EndIcon="@Icons.Filled.KeyboardArrowDown" IconColor="Color.Secondary">
+        <MudMenu Label="Nouveau" Variant="Variant.Filled" DisableElevation="true" EndIcon="@Icons.Filled.KeyboardArrowDown" IconColor="Color.Secondary">
             <MudMenuItem Icon="@Icons.Material.Filled.CreateNewFolder" OnClick="@(() => InvokeModal(null))">Ajouter Dossier</MudMenuItem>
-        </MudMenu>
-        <MudSpacer/>
-        <MudTextField @bind-Value="_searchString" Placeholder="Search" Adornment="Adornment.Start" Immediate="true"
-                      AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+        </MudMenu>   
+        <MudSpacer />
+        @if (affichage == true)
+        {
+            <MudButton Variant="Variant.Filled" OnClick="@(() => AffichageCol())">
+                <MudIcon Icon="@Icons.Material.Filled.FilterList" Color="Color.Primary" />
+            </MudButton>
+        }
+        else
+        {
+            <MudButton Variant="Variant.Filled" OnClick="@(() => AffichageList())">
+                <MudIcon Icon="@Icons.Material.Filled.Apps" Color="Color.Primary" />
+            </MudButton>
+        }
     </MudCardContent>
 
     <MudText Typo="Typo.h5">Liste Dossieur</MudText>
@@ -43,28 +62,66 @@
     else
     {
     <MudCardContent>
-        <MudGrid>
-            @foreach (var item in allDocument.Where(d => d.DossierParentId == null))
+            @if(affichage == true)
             {
-              <MudItem xs="3">
-                    <MudCard Class="d-flex align-center justify-center mud-width-full py-1 rounded-lg folder_container cursor-pointer" onclick="@(() => ListeFichier(item.Id))">
-                            <div Class="d-flex flex-column flex-grow-1">
-                                  <MudCardActions Class="d-flex justify-end flex-grow-1 gap-0" Elevation="0">
-                                      <MudIconButton  Icon="@Icons.Material.Filled.Folder" Size="Size.Large" Class="overflow-y-hidden" />
-                                      <MudText Typo="Typo.overline">@item.Titre</MudText>
-                                      <MudSpacer />
-                                    <MudMenu Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small">
-                                        <MudMenuItem OnClick="@(() => InvokeModal( Convert.ToString(item.Id)))">Modifier</MudMenuItem>
-                                        <MudMenuItem OnClick="@(() => SupprimerDemande(item.Id))">Supprimer</MudMenuItem>
-                                    </MudMenu>
-@*                                      <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small" OnClick="@(() => SupprimerDemande(item.Id))" />
-*@@*                                        <MudIconButton Icon="@Icons.Material.Filled.Edit" OnClick="@(() => InvokeModal(Convert.ToString(item.Id)))" />
-*@                                </MudCardActions>
-                            </div>
-                       </MudCard>
-               </MudItem>
+                <MudGrid>
+                    @foreach (var item in allDocument.Where(d => d.DossierParentId == null))
+                    {
+                        <MudItem xs="3">
+                            <MudCard Class="d-flex align-center justify-center mud-width-full py-1 rounded-lg folder_container cursor-pointer" onclick="@(() => ListeFichier(item.Id))">
+                                <div Class="d-flex flex-column flex-grow-1">
+                                    <MudCardActions Class="d-flex justify-end flex-grow-1 gap-0" Elevation="0">
+                                        <MudIconButton Icon="@Icons.Material.Filled.Folder" Size="Size.Large" Class="overflow-y-hidden" />
+                                        <MudText Typo="Typo.overline">@item.Titre</MudText>
+                                        <MudSpacer />
+                                        <MudMenu Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small">
+                                            <MudMenuItem OnClick="@(() => InvokeModal( Convert.ToString(item.Id)))">Modifier</MudMenuItem>
+                                            <MudMenuItem OnClick="@(() => SupprimerDemande(item.Id))">Supprimer</MudMenuItem>
+                                        </MudMenu>
+                                        @*                                      <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small" OnClick="@(() => SupprimerDemande(item.Id))" />
+                            *@@*                                        <MudIconButton Icon="@Icons.Material.Filled.Edit" OnClick="@(() => InvokeModal(Convert.ToString(item.Id)))" />
+                            *@
+                                    </MudCardActions>
+                                </div>
+                            </MudCard>
+                        </MudItem>
+                    }
+                </MudGrid>
             }
-        </MudGrid>
+            else
+            {
+                <MudTable Items="@allDocument.Where(d => d.DossierParentId == null)" Filter="new Func<DemandeSignatureDto, bool>(Search)" @bind-role="DemandeSignature" Hover="true" Breakpoint="Breakpoint.Sm" Loading="@_loaded" LoadingProgressColor="Color.Info">
+                    <HeaderContent>
+                        <MudTh><MudTableSortLabel SortBy="new Func<DemandeSignatureDto, object>(x => x.Id)">Type</MudTableSortLabel></MudTh>
+                        <MudTh><MudTableSortLabel SortBy="new Func<DemandeSignatureDto, object>(x => x.Titre)">Designation</MudTableSortLabel></MudTh>
+                        <MudTh><MudTableSortLabel SortBy="new Func<DemandeSignatureDto, object>(x => x.CreatedOn)">Date de creation</MudTableSortLabel></MudTh>
+                        <MudTh Style="text-align: center">
+                            Action
+                        </MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd DataLabel="Id"><MudIconButton Icon="@Icons.Material.Filled.Folder" Size="Size.Large" Class="overflow-y-hidden" /></MudTd>
+                        <MudTd DataLabel="Designation">@context.Titre</MudTd>
+                        <MudTd DataLabel="Position">@context.CreatedOn.ToString("dd/MM/yyyy")</MudTd>
+
+                        <MudTd Style="text-align: right">
+                            <div Class="d-flex flex-column flex-grow-1">
+                                <MudCardActions Class="d-flex justify-end flex-grow-1 gap-0" Elevation="0">
+                                    <MudSpacer />
+                                    <MudMenu Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small">
+                                        <MudMenuItem OnClick="@(() => InvokeModal( Convert.ToString(context.Id)))">Modifier</MudMenuItem>
+                                        <MudMenuItem OnClick="@(() => SupprimerDemande(context.Id))">Supprimer</MudMenuItem>
+                                    </MudMenu>
+                                </MudCardActions>
+                            </div>
+                        </MudTd>
+                    </RowTemplate>
+                    <PagerContent>
+                        <MudTablePager />
+                    </PagerContent>
+                </MudTable>
+            }
+
     </MudCardContent>
     }
    
@@ -74,7 +131,7 @@
 
 
 @code {
-
+    private bool affichage;
     private bool _loaded;
     private string _searchString = "";
 
@@ -95,6 +152,7 @@
 
     protected override async Task OnInitializedAsync()
     {
+        AffichageList();
         HubConnection = HubConnection.TryInitialize(_navigationManager);
         if (HubConnection.State == HubConnectionState.Disconnected)
         {
@@ -196,5 +254,14 @@
                 }
             }
         }
+    }
+
+    private void AffichageList()
+    {
+        affichage = true;
+    }
+    private void AffichageCol()
+    {
+        affichage = false;
     }
 }
