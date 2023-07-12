@@ -4,12 +4,12 @@
 @using Grs.BioRestock.Transfer.Requests.Identity;
 @using Microsoft.AspNetCore.SignalR.Client;
 
-<EditForm Model="@ModelDocument" OnValidSubmit="SubmitForm">
+<EditForm Model="@ModelFichier" OnValidSubmit="SubmitForm">
     <FluentValidationValidator @ref="_fluentValidationValidator" />
     <MudDialog>
         <TitleContent>
             @{
-                if (ModelDocument.Id == 0)
+                if (ModelFichier.Id == 0)
                 {
                     <MudText Typo="Typo.h6">
                         <MudIcon Icon="@Icons.Material.Filled.Add" Class="mr-3 mb-n1" />
@@ -28,16 +28,16 @@
         <DialogContent>
             <MudGrid>
                 <MudItem xs="12" md="6">
-                    <MudTextField Disabled For="@(() => ModelDocument.Id)" @bind-Value="ModelDocument.Id" Label="Id" />
+                    <MudTextField Disabled For="@(() => ModelFichier.Id)" @bind-Value="ModelFichier.Id" Label="Id" />
                 </MudItem>
                 <MudItem xs="12" md="6">
-                    <MudTextField For="@(() => ModelDocument.Designation)" @bind-Value="ModelDocument.Designation" Label="Designation" />
+                    <MudTextField For="@(() => ModelFichier.Designation)" @bind-Value="ModelFichier.Designation" Label="Designation" />
                 </MudItem>
                 <MudItem xs="12" md="6">
-                    <MudTextField For="@(() => ModelDocument.NomClient)" @bind-Value="ModelDocument.NomClient" Label="Nom Client" />
+                    <MudTextField For="@(() => ModelFichier.NomClient)" @bind-Value="ModelFichier.NomClient" Label="Nom Client" />
                 </MudItem>
                 <MudItem xs="12" md="6">
-                    <MudTextField For="@(() => ModelDocument.Valeur)" @bind-Value="ModelDocument.Valeur" Label="Valeur" />
+                    <MudTextField For="@(() => ModelFichier.Valeur)" @bind-Value="ModelFichier.Valeur" Label="Valeur" />
                 </MudItem>
 
                 <MudItem xs="12" md="6">
@@ -48,13 +48,13 @@
                             <MudAlert>@_file.Name</MudAlert>
                             <InputFile id="fileInput" hidden OnChange="UploadFiles" />
                         }
-                        @if (ModelDocument.Id != 0 && !string.IsNullOrEmpty(ModelDocument.FileUrl))
+                        @if (ModelFichier.Id != 0 && !string.IsNullOrEmpty(ModelFichier.FileUrl))
                         {
                             @*                            <MudAlert>@(ModelDemande.FileUrl)</MudAlert>
                         *@      }
                         <InputFile id="fileInput" hidden OnChange="UploadFiles" Multiple />
                         <div>
-                            @if (ModelDocument.Id == 0)
+                            @if (ModelFichier.Id == 0)
                             {
                                 <MudButton HtmlTag="label"
                                            Variant="Variant.Text"
@@ -83,7 +83,7 @@
         </DialogContent>
         <DialogActions>
             <MudButton Variant="Variant.Filled" OnClick="Cancel">Cancel</MudButton>
-            @if (ModelDocument.Id != 0)
+            @if (ModelFichier.Id != 0)
             {
                 <MudButton Variant="Variant.Filled" ButtonType="ButtonType.Submit" Color="Color.Success">Update</MudButton>
             }
@@ -101,7 +101,7 @@
     [CascadingParameter] private HubConnection HubConnection { get; set; }
 
     [ParameterAttribute]
-    public DocumentDto ModelDocument { get; set; } = new();
+    public DocumentDto ModelFichier { get; set; } = new();
 
     [ParameterAttribute]
     public int idDossier { get; set; } 
@@ -136,8 +136,8 @@
             foreach (var file in extension)
             {
                 await _file.OpenReadStream(_file.Size).ReadAsync(buffer);
-                ModelDocument.FileUrl = $"data:{format};base64,{Convert.ToBase64String(buffer)}";
-                ModelDocument.UploadRequest = new UploadRequest { Data = buffer, UploadType = UploadType.Document, Extension = extension };
+                ModelFichier.FileUrl = $"data:{format};base64,{Convert.ToBase64String(buffer)}";
+                ModelFichier.UploadRequest = new UploadRequest { Data = buffer, UploadType = UploadType.Document, Extension = extension };
             }
         }
     }
@@ -147,8 +147,8 @@
         try
         {
             await CaptureFile();
-            ModelDocument.IdDemandeSignature = idDossier;
-            var response = await _documentClient.AddEditAsync(ModelDocument);
+            ModelFichier.IdDemandeSignature = idDossier;
+            var response = await _documentClient.AddEditAsync(ModelFichier);
             if (response.Succeeded)
             {
                 _snackBar.Add(response.Messages[0], Severity.Success);
@@ -184,8 +184,8 @@
         {
             try
             {
-                ModelDocument.FileName = Path.ChangeExtension(Path.GetRandomFileName(), Path.GetExtension(_file.Name));
-                ModelDocument.FileData = await _file.GetAllBytes();
+                ModelFichier.FileName = Path.ChangeExtension(Path.GetRandomFileName(), Path.GetExtension(_file.Name));
+                ModelFichier.FileData = await _file.GetAllBytes();
             }
             catch (Exception ex)
             {

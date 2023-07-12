@@ -80,16 +80,16 @@
              </MudButton>
         } 
     </MudCardContent>
-
-       
+     
     <MudListSubheader Class="mt-4 pb-2">Dossier</MudListSubheader>
+
     @if(affichage == true)
     {
         <MudCardContent>
             <MudGrid>
                 @foreach (var item in allDocument.Where(d => d.DossierParentId == Convert.ToInt32(id)))
                 {
-                    <MudItem xs="@xs">
+                    <MudItem xs="3">
                         <MudCard Class="d-flex align-center justify-center mud-width-full py-1 rounded-lg folder_container cursor-pointer" onclick="@(() => ListeFichier(item.Id))">
                             <div Class="d-flex flex-column flex-grow-1">
                                 <MudCardActions Class="d-flex justify-end flex-grow-1 gap-0" Elevation="0">
@@ -113,7 +113,7 @@
             <MudGrid>
                 @foreach (var item in allFichiers)
                 {
-                    <MudItem xs="@xs">
+                    <MudItem xs="3">
                         <MudCard Class="d-flex flex-wrap cursor-pointer iframeContenaire container">
                             <div class="d-flex flex-grow-1 gap-4">
                                 <MudIcon Icon="@Icons.Material.Filled.InsertDriveFile" Title="Favorite" />
@@ -128,12 +128,16 @@
                                     <MudMenuItem OnClick="@(() => VoirFile(item.Id))">Voir</MudMenuItem>
                                     @if (item.demandeStatut == statutNouveau)
                                     {
-                                        <MudMenuItem OnClick="(() => InvokeModal(Convert.ToString(item.Id)))">@Localizer["Modifier"]</MudMenuItem>
+                                        <MudMenuItem OnClick="(() => InvokeModalFichier(Convert.ToString(item.Id)))">@Localizer["Modifier"]</MudMenuItem>
                                     }
                                     <MudMenuItem OnClick="@(() => AnnulerDemande(@item.Id))">Annuler</MudMenuItem>
                                     @if (item.demandeStatut != statutSigner)
                                     {
                                         <MudMenuItem OnClick="@(() => SignerDocument(@item.Id))">Signature</MudMenuItem>
+                                    }
+                                    @if (item.demandeStatut != statutSigner)
+                                    {
+                                        <MudMenuItem OnClick="@(() => SupprimerDemande(@item.Id))">Supprimer</MudMenuItem>
                                     }
                                 </MudMenu>
                             </div>
@@ -145,40 +149,41 @@
     }
     else
     {
-        <MudTable Items="@allDocument.Where(d => d.DossierParentId == Convert.ToInt32(id))" Filter="new Func<DemandeSignatureDto, bool>(Search)" @bind-role="DemandeSignature" Hover="true" Breakpoint="Breakpoint.Sm" Loading="@_loaded" LoadingProgressColor="Color.Info">
-            <HeaderContent>
-                <MudTh><MudTableSortLabel SortBy="new Func<DemandeSignatureDto, object>(x => x.Id)">Type</MudTableSortLabel></MudTh>
-                <MudTh><MudTableSortLabel SortBy="new Func<DemandeSignatureDto, object>(x => x.Titre)">Designation</MudTableSortLabel></MudTh>
-                <MudTh><MudTableSortLabel SortBy="new Func<DemandeSignatureDto, object>(x => x.CreatedOn)">Date de creation</MudTableSortLabel></MudTh>
-                <MudTh Style="text-align: center">
-                    Action
-                </MudTh>
-            </HeaderContent>
-            <RowTemplate>
-                <MudTd DataLabel="Id"><MudIconButton Icon="@Icons.Material.Filled.Folder" Size="Size.Large" Class="overflow-y-hidden"/></MudTd>
-                <MudTd DataLabel="Designation">@context.Titre</MudTd>
-                <MudTd DataLabel="Position">@context.CreatedOn.ToString("dd/MM/yyyy")</MudTd>
+        <MudCardContent>
+            <MudTable Items="@allDocument.Where(d => d.DossierParentId == Convert.ToInt32(id))" Filter="new Func<DemandeSignatureDto, bool>(Search)" @bind-role="DemandeSignature" Hover="true" Breakpoint="Breakpoint.Sm" Loading="@_loaded" LoadingProgressColor="Color.Info">
+                <HeaderContent>
+                    <MudTh><MudTableSortLabel SortBy="new Func<DemandeSignatureDto, object>(x => x.Id)">Type</MudTableSortLabel></MudTh>
+                    <MudTh><MudTableSortLabel SortBy="new Func<DemandeSignatureDto, object>(x => x.Titre)">Designation</MudTableSortLabel></MudTh>
+                    <MudTh><MudTableSortLabel SortBy="new Func<DemandeSignatureDto, object>(x => x.CreatedOn)">Date de creation</MudTableSortLabel></MudTh>
+                    <MudTh Style="text-align: center">
+                        Action
+                    </MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Id"><MudIconButton Icon="@Icons.Material.Filled.Folder" Size="Size.Large" Class="overflow-y-hidden"/></MudTd>
+                    <MudTd DataLabel="Designation">@context.Titre</MudTd>
+                    <MudTd DataLabel="Position">@context.CreatedOn.ToString("dd/MM/yyyy")</MudTd>
 
-                <MudTd Style="text-align: right">
-                    <div Class="d-flex flex-column flex-grow-1">
-                        <MudCardActions Class="d-flex justify-end flex-grow-1 gap-0" Elevation="0">
-                            <MudSpacer />
-                            <MudMenu Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small">
-                                <MudMenuItem OnClick="@(() => InvokeModal( Convert.ToString(context.Id)))">Modifier</MudMenuItem>
-                                <MudMenuItem OnClick="@(() => SupprimerDemande(context.Id))">Supprimer</MudMenuItem>
-                            </MudMenu>
-                        </MudCardActions>
-                    </div>
-                </MudTd>
-            </RowTemplate>
-            <PagerContent>
-                <MudTablePager />
-            </PagerContent>
-        </MudTable>
+                    <MudTd Style="text-align: right">
+                        <div Class="d-flex flex-column flex-grow-1">
+                            <MudCardActions Class="d-flex justify-end flex-grow-1 gap-0" Elevation="0">
+                                <MudSpacer />
+                                <MudMenu Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small">
+                                    <MudMenuItem OnClick="@(() => InvokeModal( Convert.ToString(context.Id)))">Modifier</MudMenuItem>
+                                    <MudMenuItem OnClick="@(() => SupprimerDemande(context.Id))">Supprimer</MudMenuItem>
+                                </MudMenu>
+                            </MudCardActions>
+                        </div>
+                    </MudTd>
+                </RowTemplate>
+                <PagerContent>
+                    <MudTablePager />
+                </PagerContent>
+            </MudTable>
 
-        <MudListSubheader Class="mt-4 pb-2">Fichier</MudListSubheader>
+            <MudListSubheader Class="mt-4 pb-2">Fichier</MudListSubheader>
 
-        <MudTable Items="@allFichiers.Where(c => c.demandeStatut != statutAnnuler)" Filter="new Func<DocumentDto, bool>(Search)" @bind-role="fichier" Hover="true" Breakpoint="Breakpoint.Sm" Loading="@_loaded" LoadingProgressColor="Color.Info">
+            <MudTable Items="@allFichiers.Where(c => c.demandeStatut != statutAnnuler)" Filter="new Func<DocumentDto, bool>(Search)" @bind-role="fichier" Hover="true" Breakpoint="Breakpoint.Sm" Loading="@_loaded" LoadingProgressColor="Color.Info">
             <HeaderContent>
                 <MudTh><MudTableSortLabel SortBy="new Func<DocumentDto, object>(x => x.Id)">Type</MudTableSortLabel></MudTh>
                 <MudTh><MudTableSortLabel SortBy="new Func<DocumentDto, object>(x => x.Designation)">Designation</MudTableSortLabel></MudTh>
@@ -197,7 +202,6 @@
                 <MudTd DataLabel="Position">@context.DateEtablissement.ToString("dd/MM/yyyy")</MudTd>
 
                 <MudTd Style="text-align: right">
-
                     <div class="d-flex flex-grow-1 gap-4">
                         <MudMenu Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small">
                             <MudMenuItem OnClick="@(() => DownloadFile(@context.Id))">Telecharger Doc non signé</MudMenuItem>
@@ -208,29 +212,33 @@
                             <MudMenuItem OnClick="@(() => VoirFile(context.Id))">Voir</MudMenuItem>
                             @if (context.demandeStatut == statutNouveau)
                             {
-                                <MudMenuItem OnClick="(() => InvokeModal(Convert.ToString(context.Id)))">@Localizer["Modifier"]</MudMenuItem>
+                                    <MudMenuItem OnClick="(() => InvokeModalFichier(Convert.ToString(context.Id)))">@Localizer["Modifier"]</MudMenuItem>
                             }
                             <MudMenuItem OnClick="@(() => AnnulerDemande(@context.Id))">Annuler</MudMenuItem>
                             @if (context.demandeStatut != statutSigner)
                             {
                                 <MudMenuItem OnClick="@(() => SignerDocument(@context.Id))">Signature</MudMenuItem>
                             }
+                            @if (context.demandeStatut != statutSigner)
+                            {
+                                <MudMenuItem OnClick="@(() => SupprimerDemande(@context.Id))">Supprimer</MudMenuItem>
+                            }
                         </MudMenu>
                     </div>
                 </MudTd>
+
             </RowTemplate>
             <PagerContent>
                 <MudTablePager />
             </PagerContent>
         </MudTable>
+        </MudCardContent>
     }
    
     
 </MudLayout>
 
 @code {
-    private string liste;
-    private int xs;
     private bool affichage;
     private bool _loaded;
     private string _searchString = "";
@@ -261,6 +269,7 @@
 
     protected override async Task OnInitializedAsync()
     {
+         AffichageList();
         HubConnection = HubConnection.TryInitialize(_navigationManager);
         if (HubConnection.State == HubConnectionState.Disconnected)
         {
@@ -268,7 +277,6 @@
         }
         await GetAllDemande();
         await GetAllDemande(Convert.ToInt32(id));
-        await AffichageList();
     }
 
     private async Task GetAllDemande()
@@ -314,18 +322,13 @@
         }
     }
 
-    private async Task  AffichageList()
+    private void  AffichageList()
     {
         affichage = true;
-        xs = 3;
-        //liste = "d-flex align-center justify-center mud-width-full py-1 rounded-lg folder_container cursor-pointer";
     }
     private void AffichageCol()
     {
         affichage = false;
-        //xs = 12;
-        //liste = "d-flex flex-column flex-grow-1 folder_container cursor-pointer";
-
     }
 
     private async Task AddDossier(int id)
@@ -408,7 +411,6 @@
     }
 
     /*Partie des Fichiers*/
-
     private async Task GetAllDemande(int id)
     {
         _loaded = true;
@@ -436,7 +438,7 @@
             fichier = allFichiers.FirstOrDefault(d => d.Id == Convert.ToInt32(id));
             if (fichier != null)
             {
-                parameters.Add(nameof(AddEditFichierModal.ModelDocument), new DocumentDto
+                parameters.Add(nameof(AddEditFichierModal.ModelFichier), new DocumentDto
                     {
                         Id = fichier.Id,
                         NomClient = fichier.NomClient,
@@ -467,7 +469,7 @@
         if (!result.Cancelled)
         {
             OnSearch("");
-            //await GetAllDemande();
+            await GetAllDemande();
         }
     }
 
@@ -601,13 +603,12 @@
     {
         var parameters = new DialogParameters();
         parameters.Add(nameof(ViewFichier.IdFile), id);
-        var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true };
+        var options = new DialogOptions { FullScreen = true, CloseButton = true };
         var dialog = _dialogService.Show<ViewFichier>(id == 0 ? Localizer["Create"] : Localizer["Voir le fichier"], parameters, options);
         var result = await dialog.Result;
         if (!result.Cancelled)
         {
             OnSearch("");
-            //await GetAllDemande();
         }
     }
 

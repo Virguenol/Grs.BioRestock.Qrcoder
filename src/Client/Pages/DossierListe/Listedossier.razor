@@ -26,7 +26,8 @@
         </MudItem>
         <MudItem xs="6" sm="6">
             <MudTextField @bind-Value="_searchString" Placeholder="Search" Adornment="Adornment.Start" Immediate="true"
-                          AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+                          AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0">
+            </MudTextField>
         </MudItem>
         <MudItem xs="3" sm="6">
         </MudItem>
@@ -78,9 +79,6 @@
                                             <MudMenuItem OnClick="@(() => InvokeModal( Convert.ToString(item.Id)))">Modifier</MudMenuItem>
                                             <MudMenuItem OnClick="@(() => SupprimerDemande(item.Id))">Supprimer</MudMenuItem>
                                         </MudMenu>
-                                        @*                                      <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small" OnClick="@(() => SupprimerDemande(item.Id))" />
-                            *@@*                                        <MudIconButton Icon="@Icons.Material.Filled.Edit" OnClick="@(() => InvokeModal(Convert.ToString(item.Id)))" />
-                            *@
                                     </MudCardActions>
                                 </div>
                             </MudCard>
@@ -93,14 +91,14 @@
                 <MudTable Items="@allDocument.Where(d => d.DossierParentId == null)" Filter="new Func<DemandeSignatureDto, bool>(Search)" @bind-role="DemandeSignature" Hover="true" Breakpoint="Breakpoint.Sm" Loading="@_loaded" LoadingProgressColor="Color.Info">
                     <HeaderContent>
                         <MudTh><MudTableSortLabel SortBy="new Func<DemandeSignatureDto, object>(x => x.Id)">Type</MudTableSortLabel></MudTh>
-                        <MudTh><MudTableSortLabel SortBy="new Func<DemandeSignatureDto, object>(x => x.Titre)">Designation</MudTableSortLabel></MudTh>
+                        <MudTh><MudTableSortLabel SortBy="new Func<DemandeSignatureDto, object>(x => x.Titre)">Nom</MudTableSortLabel></MudTh>
                         <MudTh><MudTableSortLabel SortBy="new Func<DemandeSignatureDto, object>(x => x.CreatedOn)">Date de creation</MudTableSortLabel></MudTh>
                         <MudTh Style="text-align: center">
                             Action
                         </MudTh>
                     </HeaderContent>
                     <RowTemplate>
-                        <MudTd DataLabel="Id"><MudIconButton Icon="@Icons.Material.Filled.Folder" Size="Size.Large" Class="overflow-y-hidden" /></MudTd>
+                        <MudTd DataLabel="Id"><MudIconButton Icon="@Icons.Material.Filled.Folder" Size="Size.Medium" Class="overflow-y-hidden" /></MudTd>
                         <MudTd DataLabel="Designation">@context.Titre</MudTd>
                         <MudTd DataLabel="Position">@context.CreatedOn.ToString("dd/MM/yyyy")</MudTd>
 
@@ -121,10 +119,8 @@
                     </PagerContent>
                 </MudTable>
             }
-
     </MudCardContent>
     }
-   
 </MudLayout>
 
          

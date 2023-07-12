@@ -44,13 +44,6 @@ namespace Grs.BioRestock.Server.Services.Demande
                 {
                     var parentDossier = request.Adapt<DemandeSignature>();
                     parentDossier.DossierParentId = parentId.Value;
-                    //parentDossier = await _context.DemandeSignatures.FindAsync(parentId.Value);
-                    //if (parentDossier == null)
-                    //{
-                    //    return await Result<string>.FailAsync("Dossier parent introuvable");
-                    //}
-                    //var Valeur = request.Adapt<DemandeSignature>();
-                    //parentDossier.SousDossiers.Add(parentDossier);
                     await _context.DemandeSignatures.AddAsync(parentDossier);
                 }
                 else
@@ -62,10 +55,6 @@ namespace Grs.BioRestock.Server.Services.Demande
                 }
                 await _context.SaveChangesAsync();
 
-                //foreach (var sousDossier in request.Adapt<Domain.Entities.DemandeSignature>().SousDossiers)
-                //{
-                //    await AddDemandeSignature(sousDossier.Adapt<DemandeSignatureDto>(), request.Id);
-                //}
                 return await Result<string>.SuccessAsync("la demande a été céer");
             }
             else

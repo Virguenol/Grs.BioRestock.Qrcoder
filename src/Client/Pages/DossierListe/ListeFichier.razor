@@ -114,7 +114,7 @@
             document = allDocument.FirstOrDefault(d => d.Id == Convert.ToInt32(id));
             if (document != null)
             {
-                parameters.Add(nameof(AddEditFichierModal.ModelDocument), new DocumentDto
+                parameters.Add(nameof(AddEditFichierModal.ModelFichier), new DocumentDto
                     {
                         Id = document.Id,
                         NomClient = document.NomClient,
