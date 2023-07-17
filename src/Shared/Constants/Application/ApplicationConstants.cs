@@ -4,6 +4,7 @@
     {
         public static string AppVersion = "v0.0.0";
         public static string AppName = "InDrive";
+        public static string TitleDosier = "Liste dossier";
 
         public static class SignalR
         {

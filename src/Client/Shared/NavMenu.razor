@@ -10,15 +10,7 @@
 	<MudNavLink Href="/Home" Icon="@Icons.Material.Outlined.Dashboard">
 		@Localizer["Accueil"]
 	</MudNavLink>
-	
- 
-	@*		<MudListSubheader Class="py-1 px-2 my-1">@Localizer["Animation"]</MudListSubheader>
 
-	<MudNavLink Style="border-left:6px solid #b955c7" Href="/Session">
-			@Localizer["Animations"]
-	</MudNavLink>*@
-		
-	 
 	<MudListSubheader Class="py-1 px-2 my-1">@Localizer["Personal"]</MudListSubheader>
 	<MudNavLink Href="/account" Icon="@Icons.Material.Outlined.SupervisorAccount">
 		@Localizer["Mon compte"]
@@ -38,50 +30,20 @@
 		{
 			<MudNavLink Href="/identity/roles" Icon="@Icons.Material.Outlined.Person">@Localizer["Rôles"]</MudNavLink>
 		}
-		@if (_canViewUsers)
-		{
-			@*<MudNavLink Href="/Demande/liste_demande" Icon="@Icons.Material.Outlined.Book">
-				@Localizer["Demande"]
-			</MudNavLink>*@
-
-			<MudNavLink Href="/DossieListe/liste_dossiers" Icon="@Icons.Material.Outlined.Book">
-				@Localizer["Document"]
-			</MudNavLink>
-		}
 		 
 	}
-
 	@if (_canViewHangfire || _canViewSwagger)
 	{
-		<MudListSubheader Class="py-1 px-2 my-1">@Localizer["Infrastructure"]</MudListSubheader>
-		@*@if (_canViewHangfire)
-		{
-			<MudNavLink Href="/job-viewer" Icon="@Icons.Material.Outlined.Work">
-				@Localizer["Job Viewer"]
-			</MudNavLink>
-		}
-		@if (_canViewSwagger)
-		{
-			<MudNavLink Href="/swagger-viewer"  Icon="@Icons.Material.Outlined.LiveHelp">
-				@Localizer["Swagger"]
-			</MudNavLink>
-		}*@
+		<MudListSubheader Class="py-1 px-2 my-1">@Localizer["Parametre"]</MudListSubheader>
 		@if (_canViewAuditTrails)
 		{
-			<MudNavLink Href="/audit-trails" Icon="@Icons.Material.Outlined.Security">
-				@Localizer["Changes Logs"]
+			<MudNavLink Href="/dossieur/Parametre" Icon="@Icons.Material.Filled.Settings">
+				@Localizer["Modifier Coordonnée"]
 			</MudNavLink>
 		}
-		
+
 
 	}
-  @*  <MudListSubheader Class="py-1 px-2 my-1">@Localizer["Guide"]</MudListSubheader>
-    <MudNavLink Href="/Tutorials" Icon="@Icons.Filled.VideoLibrary">
-        @Localizer["Tutoriels"]
-    </MudNavLink>
-	<MudNavLink Href="/UserGuid" Icon="@Icons.Filled.MenuBook">
-        @Localizer["User Guide"]
-    </MudNavLink>*@
 
 </MudNavMenu>
 

@@ -4,6 +4,7 @@ namespace Grs.BioRestock.Transfer.Requests.Identity
 {
     public class UpdateProfileRequest
     {
+        public string Id { get; set; }
         [Required]
         public string FirstName { get; set; }
 

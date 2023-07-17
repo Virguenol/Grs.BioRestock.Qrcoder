@@ -127,17 +127,22 @@
     }
     private async Task UploadFiles(InputFileChangeEventArgs e)
     {
+        var state = await _stateProvider.GetAuthenticationStateAsync();
+        var user = state.User;
+
         _file = e.File;
         if (_file != null)
         {
             var buffer = new byte[_file.Size];
             var extension = Path.GetExtension(_file.Name);
-            var format = "application/octet-stream";
+            var format = $"application/octet-stream";
+            var IdUser = user.GetUserId();
+
             foreach (var file in extension)
             {
                 await _file.OpenReadStream(_file.Size).ReadAsync(buffer);
                 ModelFichier.FileUrl = $"data:{format};base64,{Convert.ToBase64String(buffer)}";
-                ModelFichier.UploadRequest = new UploadRequest { Data = buffer, UploadType = UploadType.Document, Extension = extension };
+                ModelFichier.UploadRequest = new UploadRequest { Data = buffer, UploadType = UploadType.Document, Extension = extension, UserId = IdUser };
             }
         }
     }
@@ -146,8 +151,11 @@
     {
         try
         {
+            var state = await _stateProvider.GetAuthenticationStateAsync();
+            var user = state.User;
             await CaptureFile();
             ModelFichier.IdDemandeSignature = idDossier;
+            ModelFichier.IdUser = user.GetUserId();
             var response = await _documentClient.AddEditAsync(ModelFichier);
             if (response.Succeeded)
             {
@@ -172,6 +180,10 @@
 
     private async Task CaptureFile()
     {
+        var state = await _stateProvider.GetAuthenticationStateAsync();
+        var user = state.User;
+        var IdUser = user.GetUserId();
+
         string addContent = Localizer["Voulez-vous Ajouter ?"];
         var parameters = new DialogParameters
         {
@@ -193,16 +205,6 @@
                 throw;
             }
         }
-    }
-
-    private async Task LoadDataAsync()
-    {
-        var state = await _stateProvider.GetAuthenticationStateAsync();
-        var user = state.User;
-        _profileModel.Email = user.GetEmail();
-        _profileModel.FirstName = user.GetFirstName();
-        _profileModel.LastName = user.GetLastName();
-        _profileModel.PhoneNumber = user.GetPhoneNumber();
     }
 
     public void Cancel()

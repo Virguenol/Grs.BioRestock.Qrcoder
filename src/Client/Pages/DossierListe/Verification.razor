@@ -20,40 +20,27 @@
 <MudLayout Class="">
     <MudPaper Elevation="25">
         <MudToolBar>
-
+            <MudText Typo="Typo.h6">Date de signature : @document.DateSignature.ToString("dd/MM/yyyy")</MudText>
+            <MudSpacer />
+            <MudText Typo="Typo.h6">Vérification du Document</MudText>
+            <MudSpacer />
+            <MudText Typo="Typo.h6">Signé par : @document.NomSignateur @document.PrenomSignateur</MudText>
         </MudToolBar>
     </MudPaper>
-
-    <MudText Typo="Typo.h4" Class="titre">Vérification du Document</MudText>
+    <br />
     <div class="d-flex flex-grow-1 gap-1">
         @if (document.CodeSignature == valeurCode)
         {
-        <div Class="d-inline-flex pa-4" style="width:50%; height:400px">                
-                <MudSpacer />
-                <br />
-                <embed src="@document.FileUrlsSigne"
-             
-                       title="Document" />
-        </div>
-        <div Class="d-inline-flex pa-4">
-                <MudText Typo="Typo.subtitle1" Class="container">
-                    le dcument @valeurCode est vérifier <br />
-                    <MudList Class="align-content-center">
-                        <MudListItem >
-                            Date de signature : @document.DateSignature.ToString("dd/MM/yyyy")
-                        </MudListItem>
-                        <MudListItem >
-                            Signé par : @document.NomSignateur @document.PrenomSignateur
-                        </MudListItem>
-                    </MudList>
-                </MudText>
 
-        </div>
-            }
-            else
-            {
+            <div style="width:100%;height:700px;align-content:center;text-align:center;">
+
+                <iframe src="@document.FileUrlsSigne" title="Document" />
+            </div>
+        }
+        else
+        {
             <MudText Typo="Typo.h4">le dcument n exiest pas</MudText>
-            }
+        }
     </div>
 </MudLayout>
 @code {

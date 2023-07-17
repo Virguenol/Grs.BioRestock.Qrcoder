@@ -87,6 +87,11 @@
     {
         try
         {
+            var state = await _stateProvider.GetAuthenticationStateAsync();
+            var user = state.User;
+            var IdUser = user.GetUserId();
+
+            ModelDossier.UserId = IdUser;
             var response = await _demandeClient.AddEditAsync(Id, ModelDossier);
             await GetAllDemande();
 

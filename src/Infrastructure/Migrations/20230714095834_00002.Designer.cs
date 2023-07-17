@@ -4,6 +4,7 @@ using Grs.BioRestock.Infrastructure.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Grs.BioRestock.Infrastructure.Migrations
 {
     [DbContext(typeof(UniContext))]
-    partial class UniContextModelSnapshot : ModelSnapshot
+    [Migration("20230714095834_00002")]
+    partial class _00002
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -52,9 +54,6 @@ namespace Grs.BioRestock.Infrastructure.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Titre")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("UserId")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -111,8 +110,8 @@ namespace Grs.BioRestock.Infrastructure.Migrations
                     b.Property<int>("IdDemandeSignature")
                         .HasColumnType("int");
 
-                    b.Property<string>("IdUser")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("IdUser")
+                        .HasColumnType("int");
 
                     b.Property<string>("LastModifiedBy")
                         .HasColumnType("nvarchar(max)");

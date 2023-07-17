@@ -145,10 +145,10 @@ namespace Grs.BioRestock.Server.Services.Document
 
             var document = await _context.DocumentSignatures.FirstOrDefaultAsync(x => x.Id == id);
             
-            var folderName = "Files\\Documents\\";
-            var fileStorage = "Files\\Documents\\";
+            var folderName = "";
+            var fileStorage = "Files\\Documents\\Dossier\\";
 
-            var filePath = System.IO.Path.Combine(folderName, document.FileName);
+            var filePath = System.IO.Path.Combine(folderName, document.FileUrl);
             var filePathS = System.IO.Path.Combine(fileStorage, $"{code_url}.pdf");
 
             PdfReader reader = new PdfReader(filePath);

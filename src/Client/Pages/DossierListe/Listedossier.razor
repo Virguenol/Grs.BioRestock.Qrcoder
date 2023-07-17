@@ -1,4 +1,7 @@
-﻿@page "/DossieListe/liste_dossiers"
+﻿@page "/"
+@page "/Home"
+@page "/DossieListe/liste_dossiers"
+@using Grs.BioRestock.Shared.Constants.Application;
 @using Grs.BioRestock.Shared.Enums.Demande;
 @using Grs.BioRestock.Transfer.DataModels.Demande;
 @using Grs.BioRestock.Transfer.DataModels.Document;
@@ -21,37 +24,35 @@
 </style>
 
 <MudLayout Class="align-center justify-center">
-    <MudGrid>
-        <MudItem xs="3">
-        </MudItem>
-        <MudItem xs="6" sm="6">
-            <MudTextField @bind-Value="_searchString" Placeholder="Search" Adornment="Adornment.Start" Immediate="true"
-                          AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0">
-            </MudTextField>
-        </MudItem>
-        <MudItem xs="3" sm="6">
-        </MudItem>
-    </MudGrid>
-    <MudCardContent Class="d-flex flex-grow-1">
-        <MudMenu Label="Nouveau" Variant="Variant.Filled" DisableElevation="true" EndIcon="@Icons.Filled.KeyboardArrowDown" IconColor="Color.Secondary">
-            <MudMenuItem Icon="@Icons.Material.Filled.CreateNewFolder" OnClick="@(() => InvokeModal(null))">Ajouter Dossier</MudMenuItem>
-        </MudMenu>   
-        <MudSpacer />
-        @if (affichage == true)
-        {
-            <MudButton Variant="Variant.Filled" OnClick="@(() => AffichageCol())">
-                <MudIcon Icon="@Icons.Material.Filled.FilterList" Color="Color.Primary" />
-            </MudButton>
-        }
-        else
-        {
-            <MudButton Variant="Variant.Filled" OnClick="@(() => AffichageList())">
-                <MudIcon Icon="@Icons.Material.Filled.Apps" Color="Color.Primary" />
-            </MudButton>
-        }
+    <MudCardContent Class="d-flex justify-space-around">
+      <MudGrid>
+            <MudItem xs="2">
+                 <MudMenu Label="Nouveau" Variant="Variant.Filled" DisableElevation="true" EndIcon="@Icons.Filled.KeyboardArrowDown" IconColor="Color.Secondary">
+                   <MudMenuItem Icon="@Icons.Material.Filled.CreateNewFolder" OnClick="@(() => InvokeModal(null))">Ajouter Dossier</MudMenuItem>
+                </MudMenu>
+            </MudItem>
+            <MudItem xs="8" sm="8">
+                <MudTextField @bind-Value="_searchString" Placeholder="Search" Adornment="Adornment.Start" Immediate="true"
+                              AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0">
+                </MudTextField>
+            </MudItem>
+            <MudItem xs="2" sm="2">
+                @if (affichage == true)
+                {
+                    <MudButton Variant="Variant.Filled" OnClick="@(() => AffichageCol())">
+                        <MudIcon Icon="@Icons.Material.Filled.FilterList" Color="Color.Primary" />
+                    </MudButton>
+                }
+                else
+                {
+                    <MudButton Variant="Variant.Filled" OnClick="@(() => AffichageList())">
+                        <MudIcon Icon="@Icons.Material.Filled.Apps" Color="Color.Primary" />
+                    </MudButton>
+                }
+            </MudItem>
+        </MudGrid>
     </MudCardContent>
 
-    <MudText Typo="Typo.h5">Liste Dossieur</MudText>
     <MudDivider DividerType="DividerType.Inset" />
     <MudPaper Class="d-flex align-center justify-center mud-width-full">
     </MudPaper>
@@ -69,6 +70,8 @@
                     @foreach (var item in allDocument.Where(d => d.DossierParentId == null))
                     {
                         <MudItem xs="3">
+                            @if (item.UserId == idUser)
+                            {
                             <MudCard Class="d-flex align-center justify-center mud-width-full py-1 rounded-lg folder_container cursor-pointer" onclick="@(() => ListeFichier(item.Id))">
                                 <div Class="d-flex flex-column flex-grow-1">
                                     <MudCardActions Class="d-flex justify-end flex-grow-1 gap-0" Elevation="0">
@@ -82,6 +85,7 @@
                                     </MudCardActions>
                                 </div>
                             </MudCard>
+                            }
                         </MudItem>
                     }
                 </MudGrid>
@@ -124,8 +128,6 @@
 </MudLayout>
 
          
-
-
 @code {
     private bool affichage;
     private bool _loaded;
@@ -144,10 +146,13 @@
     protected List<DemandeSignatureDto> allDocument { get; set; } = new();
     protected DemandeSignatureDto DemandeSignature { get; set; }
     protected DemandeSignatureDto dossier { get; set; }
+    [Parameter]
+    public string idUser { get; set; }
 
 
     protected override async Task OnInitializedAsync()
     {
+        _global.CurrentTitle = ApplicationConstants.TitleDosier;
         AffichageList();
         HubConnection = HubConnection.TryInitialize(_navigationManager);
         if (HubConnection.State == HubConnectionState.Disconnected)
@@ -156,6 +161,10 @@
         }
         await GetAllDemande();
         _loaded = true;
+
+        var state = await _stateProvider.GetAuthenticationStateAsync();
+        var user = state.User;
+        idUser = user.GetUserId();
     }
 
     private async Task GetAllDemande()

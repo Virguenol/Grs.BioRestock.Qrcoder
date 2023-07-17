@@ -15,7 +15,8 @@ namespace Grs.BioRestock.Infrastructure.Services
             if (streamData.Length > 0)
             {
                 var folder = request.UploadType.ToDescriptionString();
-                var folderName = Path.Combine("Files", folder);
+                var idUser = request.UserId;
+                var folderName = Path.Combine("Files", folder, idUser);
                 var pathToSave = Path.Combine(Directory.GetCurrentDirectory(), folderName);
                 bool exists = System.IO.Directory.Exists(pathToSave);
                 if (!exists)

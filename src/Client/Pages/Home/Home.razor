@@ -1,5 +1,5 @@
-﻿@page "/"
-@page "/Home"
+﻿@*@page "/"
+@page "/Home"*@
 @using System.Security.Claims
 @using System.Threading
 @using Grs.BioRestock.Client.Infrastructure.ApiClients;
@@ -141,8 +141,6 @@ else
             //    _ListRealisation = myresponse.Data ?? new List<VwRealisationDTO>();
             //    _ListCurrentRealisation = _ListRealisation.Where(o => o.Annee == DateTime.Now.Year
             //                                                          && o.Mois == DateTime.Now.Month).ToList() ?? new List<VwRealisationDTO>();
-
-
             //}
             //else
             //{
@@ -174,9 +172,7 @@ else
                     _snackBar.Add(Localizer["Mise à jour lancé ..."], Severity.Info);
                     await InvokeClearApplicationCache();
                 }
-
             }
-
         }
         catch (HttpRequestException)
         {

@@ -15,6 +15,7 @@ namespace Grs.BioRestock.Domain.Entities
         public string FileUrl { get; set; }
         public string FileUrlsSigne { get; set; }
         public string NomClient { get; set; }
+        public string IdUser { get; set; }
         public string NomSignateur { get; set; }
         public string PrenomSignateur { get; set; }
         public decimal Valeur { get; set; }

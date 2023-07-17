@@ -46,39 +46,41 @@
 
 
 <MudLayout Class="align-center justify-center">
-    <MudGrid>
-        <MudItem xs="3">
-        </MudItem>
-        <MudItem xs="6" sm="6">
-            <MudTextField @bind-Value="_searchString" Placeholder="Search" Adornment="Adornment.Start" Immediate="true"
-                          AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0">
-            </MudTextField>
-        </MudItem>
-        <MudItem xs="3" sm="6">
-        </MudItem>
-    </MudGrid>
-        <br />
     <MudCardContent Class="d-flex justify-space-around">
-        <MudAvatar Rounded="true" Color="Color.Secondary" Class="mr-3">
-            <MudIcon Icon="@Icons.Material.Filled.SubdirectoryArrowLeft" Color="Color.Primary" onclick="@(() => Retour(Convert.ToInt32(id)))" />
-        </MudAvatar>
-        <MudMenu Label="Nouveau" Variant="Variant.Filled" DisableElevation="true" EndIcon="@Icons.Filled.KeyboardArrowDown" IconColor="Color.Secondary">
-            <MudMenuItem Icon="@Icons.Material.Filled.CreateNewFolder" OnClick="@(() => AddDossier(Convert.ToInt32(id)))">Ajouter Dossier</MudMenuItem>
-            <MudMenuItem Icon="@Icons.Material.Filled.FileUpload" OnClick="@(() => AddDocument(Convert.ToInt32(id)))">Ajuter Fichier</MudMenuItem>
-        </MudMenu>
-        <MudSpacer />
-        @if(affichage == true)
-        {
-            <MudButton Variant="Variant.Filled" OnClick="@(() => AffichageCol())">
-                <MudIcon Icon="@Icons.Material.Filled.FilterList" Color="Color.Primary" />
-            </MudButton>
-        }
-        else
-        {
-             <MudButton Variant="Variant.Filled" OnClick="@(() => AffichageList())">
-                <MudIcon Icon="@Icons.Material.Filled.Apps" Color="Color.Primary" />
-             </MudButton>
-        } 
+
+        <MudGrid>
+            <MudItem xs="1">
+                <MudAvatar Rounded="true" Color="Color.Secondary" Class="mr-3">
+                    <MudIcon Icon="@Icons.Material.Filled.SubdirectoryArrowLeft" Color="Color.Primary" onclick="@(() => Retour(Convert.ToInt32(id)))" />
+                </MudAvatar>
+            </MudItem>
+            <MudItem xs="2">
+                <MudMenu Label="Nouveau" Variant="Variant.Filled" DisableElevation="true" EndIcon="@Icons.Filled.KeyboardArrowDown" IconColor="Color.Secondary">
+                    <MudMenuItem Icon="@Icons.Material.Filled.CreateNewFolder" OnClick="@(() => AddDossier(Convert.ToInt32(id)))">Ajouter Dossier</MudMenuItem>
+                    <MudMenuItem Icon="@Icons.Material.Filled.FileUpload" OnClick="@(() => AddDocument(Convert.ToInt32(id)))">Ajuter Fichier</MudMenuItem>
+                </MudMenu>
+            </MudItem>
+            <MudItem xs="8" sm="8">
+                <MudTextField @bind-Value="_searchString" Placeholder="Search" Adornment="Adornment.Start" Immediate="true"
+                              AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0">
+                </MudTextField>
+            </MudItem>
+            <MudItem xs="1" sm="1">
+                @if (affichage == true)
+                {
+                    <MudButton Variant="Variant.Filled" OnClick="@(() => AffichageCol())">
+                        <MudIcon Icon="@Icons.Material.Filled.FilterList" Color="Color.Primary" />
+                    </MudButton>
+                }
+                else
+                {
+                    <MudButton Variant="Variant.Filled" OnClick="@(() => AffichageList())">
+                        <MudIcon Icon="@Icons.Material.Filled.Apps" Color="Color.Primary" />
+                    </MudButton>
+                }
+            </MudItem>
+        </MudGrid>
+
     </MudCardContent>
      
     <MudListSubheader Class="mt-4 pb-2">Dossier</MudListSubheader>
@@ -90,6 +92,8 @@
                 @foreach (var item in allDocument.Where(d => d.DossierParentId == Convert.ToInt32(id)))
                 {
                     <MudItem xs="3">
+                        @if (item.UserId == idUser)
+                        {
                         <MudCard Class="d-flex align-center justify-center mud-width-full py-1 rounded-lg folder_container cursor-pointer" onclick="@(() => ListeFichier(item.Id))">
                             <div Class="d-flex flex-column flex-grow-1">
                                 <MudCardActions Class="d-flex justify-end flex-grow-1 gap-0" Elevation="0">
@@ -103,20 +107,22 @@
                                 </MudCardActions>
                             </div>
                         </MudCard>
+                        }
                     </MudItem>
                 }
             </MudGrid>
         </MudCardContent>
 
         <MudListSubheader Class="mt-4 pb-2">Fichier</MudListSubheader>
+
         <MudCardContent>
             <MudGrid>
-                @foreach (var item in allFichiers)
+                @foreach (var item in allFichiers.Where(f => f.IdUser == idUser))
                 {
                     <MudItem xs="3">
                         <MudCard Class="d-flex flex-wrap cursor-pointer iframeContenaire container">
                             <div class="d-flex flex-grow-1 gap-4">
-                                <MudIcon Icon="@Icons.Material.Filled.InsertDriveFile" Title="Favorite" />
+                                <MudIcon Icon="@Icons.Material.Filled.PictureAsPdf" Title="Favorite" />
                                 <MudText Typo="Typo.overline">@item.NomClient</MudText>
                                 <MudSpacer />
                                 <MudMenu Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small">
@@ -169,6 +175,7 @@
                             <MudCardActions Class="d-flex justify-end flex-grow-1 gap-0" Elevation="0">
                                 <MudSpacer />
                                 <MudMenu Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small">
+                                    <MudMenuItem OnClick="@(() => ListeFichier(context.Id))">Ouvrir</MudMenuItem>
                                     <MudMenuItem OnClick="@(() => InvokeModal( Convert.ToString(context.Id)))">Modifier</MudMenuItem>
                                     <MudMenuItem OnClick="@(() => SupprimerDemande(context.Id))">Supprimer</MudMenuItem>
                                 </MudMenu>
@@ -183,7 +190,7 @@
 
             <MudListSubheader Class="mt-4 pb-2">Fichier</MudListSubheader>
 
-            <MudTable Items="@allFichiers.Where(c => c.demandeStatut != statutAnnuler)" Filter="new Func<DocumentDto, bool>(Search)" @bind-role="fichier" Hover="true" Breakpoint="Breakpoint.Sm" Loading="@_loaded" LoadingProgressColor="Color.Info">
+            <MudTable Items="@allFichiers.Where(f => f.IdUser == idUser)" Filter="new Func<DocumentDto, bool>(Search)" @bind-role="fichier" Hover="true" Breakpoint="Breakpoint.Sm" Loading="@_loaded" LoadingProgressColor="Color.Info">
             <HeaderContent>
                 <MudTh><MudTableSortLabel SortBy="new Func<DocumentDto, object>(x => x.Id)">Type</MudTableSortLabel></MudTh>
                 <MudTh><MudTableSortLabel SortBy="new Func<DocumentDto, object>(x => x.Designation)">Designation</MudTableSortLabel></MudTh>
@@ -195,10 +202,18 @@
                 </MudTh>
             </HeaderContent>
             <RowTemplate>
-                <MudTd DataLabel="Id"><MudIcon Icon="@Icons.Material.Filled.InsertDriveFile" Title="Favorite" /></MudTd>
+                @if (context.demandeStatut == statutSigner)
+                {
+                   <MudTd DataLabel="Id"><MudIcon Icon="@Icons.Material.Filled.InsertDriveFile" Title="Favorite"/></MudTd>
+@*                   <MudIcon Icon="@Icons.Material.Filled.CheckCircle"></MudIcon>
+*@                }
+                else
+                {
+                   <MudTd DataLabel="Id"><MudIcon Icon="@Icons.Material.Filled.InsertDriveFile" Title="Favorite"/></MudTd>
+                }
                 <MudTd DataLabel="Designation">@context.Designation</MudTd>
                 <MudTd DataLabel="Nom">@context.NomClient</MudTd>
-                <MudTd DataLabel="Nom">@context.Valeur</MudTd>
+                    <MudTd DataLabel="Nom">@context.Valeur.ToString("N2")</MudTd>
                 <MudTd DataLabel="Position">@context.DateEtablissement.ToString("dd/MM/yyyy")</MudTd>
 
                 <MudTd Style="text-align: right">
@@ -233,9 +248,7 @@
             </PagerContent>
         </MudTable>
         </MudCardContent>
-    }
-   
-    
+    }  
 </MudLayout>
 
 @code {
@@ -256,6 +269,8 @@
     public string id { get; set; }
     [Parameter]
     public int idParent { get; set; }
+    [Parameter]
+    public string idUser {get;set;}
 
 
     protected List<DemandeSignatureDto> allDocument { get; set; } = new();
@@ -269,7 +284,11 @@
 
     protected override async Task OnInitializedAsync()
     {
-         AffichageList();
+        AffichageList();
+        var state = await _stateProvider.GetAuthenticationStateAsync();
+        var user = state.User;
+        idUser = user.GetUserId();
+
         HubConnection = HubConnection.TryInitialize(_navigationManager);
         if (HubConnection.State == HubConnectionState.Disconnected)
         {
@@ -281,7 +300,7 @@
 
     private async Task GetAllDemande()
     {
-        _loaded = false;
+        _loaded = true;
         try
         {
             var response = await _demandeClient.GetAllAsync();
@@ -439,12 +458,12 @@
             if (fichier != null)
             {
                 parameters.Add(nameof(AddEditFichierModal.ModelFichier), new DocumentDto
-                    {
-                        Id = fichier.Id,
-                        NomClient = fichier.NomClient,
-                        Designation = fichier.Designation,
-                        Valeur = fichier.Valeur
-                    });
+                {
+                    Id = fichier.Id,
+                    NomClient = fichier.NomClient,
+                    Designation = fichier.Designation,
+                    Valeur = fichier.Valeur
+                });
             }
         }
         var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true, DisableBackdropClick = true };

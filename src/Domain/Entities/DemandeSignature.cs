@@ -12,6 +12,7 @@ namespace Grs.BioRestock.Domain.Entities
     {
         public string Titre { get; set; }
         public int? DossierParentId { get; set; }
+        public string UserId { get; set; }
         public DateTime DateAnnulation { get; set; }
         public DateTime DateEtablissement { get; set; }
         public List<DemandeSignature> SousDossiers { get; set; }
